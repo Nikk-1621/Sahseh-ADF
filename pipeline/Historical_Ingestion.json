@@ -20,6 +20,8 @@
 						"storeSettings": {
 							"type": "AzureBlobFSReadSettings",
 							"recursive": true,
+							"wildcardFolderPath": "web_scraper_raw_dump/styli/historical",
+							"wildcardFileName": "*",
 							"enablePartitionDiscovery": false
 						},
 						"formatSettings": {
@@ -46,10 +48,7 @@
 				"inputs": [
 					{
 						"referenceName": "DelimitedText",
-						"type": "DatasetReference",
-						"parameters": {
-							"file_path": "web_scraper_raw_dump/styli/historical"
-						}
+						"type": "DatasetReference"
 					}
 				],
 				"outputs": [
