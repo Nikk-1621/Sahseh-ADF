@@ -21,6 +21,13 @@
 							{
 								"name": "input_file_name",
 								"value": "$$FILEPATH"
+							},
+							{
+								"name": "update_timestamp",
+								"value": {
+									"value": "@utcNow()",
+									"type": "Expression"
+								}
 							}
 						],
 						"storeSettings": {
@@ -88,6 +95,13 @@
 							{
 								"name": "input_file_name",
 								"value": "$$FILEPATH"
+							},
+							{
+								"name": "update_timestamp",
+								"value": {
+									"value": "@utcNow()",
+									"type": "Expression"
+								}
 							}
 						],
 						"storeSettings": {
@@ -155,6 +169,13 @@
 							{
 								"name": "input_file_name",
 								"value": "$$FILEPATH"
+							},
+							{
+								"name": "update_timestamp",
+								"value": {
+									"value": "@utcNow()",
+									"type": "Expression"
+								}
 							}
 						],
 						"storeSettings": {
@@ -222,6 +243,13 @@
 							{
 								"name": "input_file_name",
 								"value": "$$FILEPATH"
+							},
+							{
+								"name": "update_timestamp",
+								"value": {
+									"value": "@utcNow()",
+									"type": "Expression"
+								}
 							}
 						],
 						"storeSettings": {
@@ -289,6 +317,13 @@
 							{
 								"name": "input_file_name",
 								"value": "$$FILEPATH"
+							},
+							{
+								"name": "update_timestamp",
+								"value": {
+									"value": "@utcNow()",
+									"type": "Expression"
+								}
 							}
 						],
 						"storeSettings": {
@@ -356,6 +391,13 @@
 							{
 								"name": "input_file_name",
 								"value": "$$FILEPATH"
+							},
+							{
+								"name": "update_timestamp",
+								"value": {
+									"value": "@utcNow()",
+									"type": "Expression"
+								}
 							}
 						],
 						"storeSettings": {
