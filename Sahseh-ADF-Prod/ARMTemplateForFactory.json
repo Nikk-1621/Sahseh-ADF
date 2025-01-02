@@ -57,6 +57,13 @@
 									{
 										"name": "input_file_name",
 										"value": "$$FILEPATH"
+									},
+									{
+										"name": "update_timestamp",
+										"value": {
+											"value": "@utcNow()",
+											"type": "Expression"
+										}
 									}
 								],
 								"storeSettings": {
@@ -72,10 +79,9 @@
 							},
 							"sink": {
 								"type": "AzureSqlSink",
-								"preCopyScript": "drop table raw.styli_raw",
+								"preCopyScript": "truncate table raw.styli_raw",
 								"writeBehavior": "insert",
 								"sqlWriterUseTableLock": false,
-								"tableOption": "autoCreate",
 								"disableMetricsCollection": false
 							},
 							"enableStaging": false,
@@ -125,6 +131,13 @@
 									{
 										"name": "input_file_name",
 										"value": "$$FILEPATH"
+									},
+									{
+										"name": "update_timestamp",
+										"value": {
+											"value": "@utcNow()",
+											"type": "Expression"
+										}
 									}
 								],
 								"storeSettings": {
@@ -140,10 +153,9 @@
 							},
 							"sink": {
 								"type": "AzureSqlSink",
-								"preCopyScript": "drop table raw.noon_raw",
+								"preCopyScript": "truncate table raw.noon_raw",
 								"writeBehavior": "insert",
 								"sqlWriterUseTableLock": false,
-								"tableOption": "autoCreate",
 								"disableMetricsCollection": false
 							},
 							"enableStaging": false,
@@ -193,6 +205,13 @@
 									{
 										"name": "input_file_name",
 										"value": "$$FILEPATH"
+									},
+									{
+										"name": "update_timestamp",
+										"value": {
+											"value": "@utcNow()",
+											"type": "Expression"
+										}
 									}
 								],
 								"storeSettings": {
@@ -208,10 +227,9 @@
 							},
 							"sink": {
 								"type": "AzureSqlSink",
-								"preCopyScript": "drop table raw.platformance_raw",
+								"preCopyScript": "truncate table raw.platformance_raw",
 								"writeBehavior": "insert",
 								"sqlWriterUseTableLock": false,
-								"tableOption": "autoCreate",
 								"disableMetricsCollection": false
 							},
 							"enableStaging": false,
@@ -261,6 +279,13 @@
 									{
 										"name": "input_file_name",
 										"value": "$$FILEPATH"
+									},
+									{
+										"name": "update_timestamp",
+										"value": {
+											"value": "@utcNow()",
+											"type": "Expression"
+										}
 									}
 								],
 								"storeSettings": {
@@ -276,10 +301,9 @@
 							},
 							"sink": {
 								"type": "AzureSqlSink",
-								"preCopyScript": "drop table raw.digizag_raw",
+								"preCopyScript": "truncate table raw.digizag_raw",
 								"writeBehavior": "insert",
 								"sqlWriterUseTableLock": false,
-								"tableOption": "autoCreate",
 								"disableMetricsCollection": false
 							},
 							"enableStaging": false,
@@ -329,6 +353,13 @@
 									{
 										"name": "input_file_name",
 										"value": "$$FILEPATH"
+									},
+									{
+										"name": "update_timestamp",
+										"value": {
+											"value": "@utcNow()",
+											"type": "Expression"
+										}
 									}
 								],
 								"storeSettings": {
@@ -344,10 +375,9 @@
 							},
 							"sink": {
 								"type": "AzureSqlSink",
-								"preCopyScript": "drop table raw.arabyads_raw",
+								"preCopyScript": "truncate table raw.arabyads_raw",
 								"writeBehavior": "insert",
 								"sqlWriterUseTableLock": false,
-								"tableOption": "autoCreate",
 								"disableMetricsCollection": false
 							},
 							"enableStaging": false,
@@ -397,6 +427,13 @@
 									{
 										"name": "input_file_name",
 										"value": "$$FILEPATH"
+									},
+									{
+										"name": "update_timestamp",
+										"value": {
+											"value": "@utcNow()",
+											"type": "Expression"
+										}
 									}
 								],
 								"storeSettings": {
@@ -409,10 +446,9 @@
 							},
 							"sink": {
 								"type": "AzureSqlSink",
-								"preCopyScript": "drop table raw.admitads_raw",
+								"preCopyScript": "truncate table raw.admitads_raw",
 								"writeBehavior": "insert",
 								"sqlWriterUseTableLock": false,
-								"tableOption": "autoCreate",
 								"disableMetricsCollection": false
 							},
 							"enableStaging": false,
@@ -509,6 +545,7 @@
 						"fileSystem": "raw"
 					},
 					"columnDelimiter": ",",
+					"rowDelimiter": "\n",
 					"escapeChar": "\\",
 					"firstRowAsHeader": true,
 					"quoteChar": "\""
