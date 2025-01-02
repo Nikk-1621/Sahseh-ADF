@@ -5,20 +5,11 @@
 			"referenceName": "AzureDataLakeStorage",
 			"type": "LinkedServiceReference"
 		},
-		"parameters": {
-			"file_path": {
-				"type": "string"
-			}
-		},
 		"annotations": [],
 		"type": "DelimitedText",
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
-				"folderPath": {
-					"value": "@dataset().file_path",
-					"type": "Expression"
-				},
 				"fileSystem": "raw"
 			},
 			"columnDelimiter": ",",
