@@ -1,0 +1,9 @@
+{
+	"name": "Sahseh-ADF-Prod",
+	"location": "uaenorth",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "67cc127a-e59e-4e3d-87f0-9898ee1c99b9",
+		"tenantId": "c01ddd15-9335-40c6-959c-305c330c06a1"
+	}
+}
