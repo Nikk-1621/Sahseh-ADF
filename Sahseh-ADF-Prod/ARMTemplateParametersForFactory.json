@@ -8,11 +8,23 @@
 		"AzureDataLakeStorage_accountKey": {
 			"value": ""
 		},
+		"AzureSqlDados_password": {
+			"value": ""
+		},
 		"AzureDataLakeStorage_properties_typeProperties_url": {
 			"value": "https://sahsehbidatalake.dfs.core.windows.net/"
 		},
 		"AzureKeyVault_properties_typeProperties_baseUrl": {
 			"value": "https://Sahseh-Vault.vault.azure.net/"
+		},
+		"AzureSqlDados_properties_typeProperties_server": {
+			"value": "sqlserveritcantestandprod.database.windows.net"
+		},
+		"AzureSqlDados_properties_typeProperties_database": {
+			"value": "db_sql_prod_dados"
+		},
+		"AzureSqlDados_properties_typeProperties_userName": {
+			"value": "Sahseh-ADF"
 		},
 		"AzureSqlDatabase_properties_typeProperties_server": {
 			"value": "sqlserversahsehbi.database.windows.net"
