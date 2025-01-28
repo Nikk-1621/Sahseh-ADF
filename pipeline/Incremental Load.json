@@ -81,7 +81,7 @@
 							"type": "AzureBlobFSReadSettings",
 							"recursive": true,
 							"wildcardFolderPath": {
-								"value": "@concat('web_scraper_raw_dump/6Street',variables('Today_Date'))",
+								"value": "@concat('web_scraper_raw_dump/6Street/',variables('Today_Date'))",
 								"type": "Expression"
 							},
 							"wildcardFileName": "*",
