@@ -1,9 +1,9 @@
 {
-	"name": "pipeline1",
+	"name": "Incremental Load",
 	"properties": {
 		"activities": [
 			{
-				"name": "Set Date",
+				"name": "Set Today Date",
 				"type": "SetVariable",
 				"dependsOn": [],
 				"policy": {
@@ -12,7 +12,7 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"variableName": "Date",
+					"variableName": "Today_Date",
 					"value": {
 						"value": "@utcNow('yyyy-MM-dd')",
 						"type": "Expression"
@@ -20,50 +20,39 @@
 				}
 			},
 			{
-				"name": "Copy 6th Street Data to Raw DWH",
-				"type": "Copy",
-				"dependsOn": [
-					{
-						"activity": "Set Date",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
+				"name": "Set From Date",
+				"type": "SetVariable",
+				"dependsOn": [],
 				"policy": {
-					"timeout": "0.12:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
 					"secureOutput": false,
 					"secureInput": false
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"source": {
-						"type": "DelimitedTextSource",
-						"storeSettings": {
-							"type": "AzureBlobFSReadSettings",
-							"recursive": true,
-							"wildcardFileName": "*",
-							"enablePartitionDiscovery": false
-						},
-						"formatSettings": {
-							"type": "DelimitedTextReadSettings"
-						}
-					},
-					"enableStaging": false
-				},
-				"inputs": [
-					{
-						"referenceName": "DelimitedText",
-						"type": "DatasetReference"
+					"variableName": "Refresh_From_Date",
+					"value": {
+						"value": "@adddays(utcNow(),variables('Refresh Interval'),'yyyy-MM-dd')",
+						"type": "Expression"
 					}
-				]
+				}
 			},
 			{
 				"name": "Copy 6th Strret Historical Data",
 				"type": "Copy",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "Set Today Date",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Set From Date",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"policy": {
 					"timeout": "0.12:00:00",
 					"retry": 0,
@@ -91,7 +80,10 @@
 						"storeSettings": {
 							"type": "AzureBlobFSReadSettings",
 							"recursive": true,
-							"wildcardFolderPath": "web_scraper_raw_dump/6Street",
+							"wildcardFolderPath": {
+								"value": "@concat('web_scraper_raw_dump/6Street',variables('Today_Date'))",
+								"type": "Expression"
+							},
 							"wildcardFileName": "*",
 							"enablePartitionDiscovery": false
 						},
@@ -135,7 +127,14 @@
 			}
 		],
 		"variables": {
-			"Date": {
+			"Today_Date": {
+				"type": "String"
+			},
+			"Refresh Interval": {
+				"type": "Integer",
+				"defaultValue": -30
+			},
+			"Refresh_From_Date": {
 				"type": "String"
 			}
 		},
