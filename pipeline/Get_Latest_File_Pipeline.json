@@ -1,0 +1,84 @@
+{
+	"name": "Get_Latest_File_Pipeline",
+	"properties": {
+		"activities": [
+			{
+				"name": "Set Today Date",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "Today_Date",
+					"value": {
+						"value": "@utcNow('yyyy-MM-dd')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Get_Folder_Contents",
+				"type": "GetMetadata",
+				"dependsOn": [
+					{
+						"activity": "Set Today Date",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "Binary1",
+						"type": "DatasetReference",
+						"parameters": {
+							"File_Path": {
+								"value": "@concat('web_scraper_raw_dump/noon/2025-01-29/')",
+								"type": "Expression"
+							}
+						}
+					},
+					"fieldList": [
+						"childItems",
+						"exists",
+						"lastModified"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "BinaryReadSettings"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"client": {
+				"type": "string",
+				"defaultValue": "noon"
+			}
+		},
+		"variables": {
+			"LatestFile": {
+				"type": "String"
+			},
+			"Today_Date": {
+				"type": "String"
+			}
+		},
+		"annotations": []
+	}
+}
