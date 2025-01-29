@@ -5,6 +5,8 @@
 			{
 				"name": "Copy CPX to Curated",
 				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [],
 				"policy": {
 					"timeout": "0.12:00:00",
@@ -17,15 +19,15 @@
 				"typeProperties": {
 					"source": {
 						"type": "AzureSqlSource",
-						"sqlReaderQuery": "SELECT\r\n    transaction_id,\r\n    REPLACE(\r\n        REPLACE(\r\n            REPLACE(cpx.country_code, 'KSA', 'SAU'), \r\n            'UAE', 'ARE'\r\n        ), \r\n        'INT', ''\r\n    ) AS country_code,\r\n    client_id,\r\n    order_id,\r\n    customer_type,\r\n    CASE\r\n        WHEN cpx.client_name = '6thstreet' THEN '6th Street'\r\n        WHEN cpx.client_name = 'Bath & body works' THEN 'Bath and body works'\r\n        WHEN cpx.client_name LIKE '%Airalo%' THEN 'Airalo'\r\n        WHEN cpx.client_name = 'Toysrus' THEN 'Toys r us'\r\n        WHEN cpx.client_name = 'First cry' THEN 'Firstcry'\r\n        WHEN cpx.client_name = 'Foot locker' THEN 'Footlocker'\r\n        WHEN cpx.client_name = 'Go sport' THEN 'Go sports'\r\n        WHEN cpx.client_name = 'Izil' THEN 'Izil Beauty'\r\n        WHEN cpx.client_name LIKE '%Munch%' THEN 'Munch bakery'\r\n        WHEN cpx.client_name LIKE '%Basharacare%' THEN 'Bashara Care'\r\n        WHEN cpx.client_name LIKE '%Dropkicks%' THEN 'Dropkick'\r\n        WHEN cpx.client_name LIKE '%Temu%' THEN 'Temu'\r\n        WHEN cpx.client_name LIKE '%_CPS' THEN REPLACE(cpx.client_name, '_CPS', '')\r\n        WHEN cpx.client_name LIKE '%_CPO' THEN REPLACE(cpx.client_name, '_CPO', '')\r\n        WHEN cpx.client_name LIKE '%_web' THEN REPLACE(cpx.client_name, '_web', '')\r\n        WHEN cpx.client_name LIKE '%_ksa' THEN REPLACE(cpx.client_name, '_ksa', '')\r\n        WHEN cpx.client_name LIKE '% - plt%' THEN REPLACE(cpx.client_name, ' - plt', '')\r\n        WHEN cpx.client_name LIKE '% - maf%' THEN REPLACE(cpx.client_name, ' - maf', '')\r\n        WHEN cpx.client_name LIKE '% - rakuten%' THEN REPLACE(cpx.client_name, ' - rakuten', '')\r\n        WHEN cpx.client_name LIKE '% (tbs)' THEN REPLACE(cpx.client_name, ' (tbs)', '')\r\n        WHEN cpx.client_name LIKE '% (durrapro)' THEN REPLACE(cpx.client_name, ' (durrapro)', '')\r\n        WHEN cpx.client_name LIKE '%_%' THEN REPLACE(cpx.client_name, '_', ' ')\r\n        ELSE cpx.client_name\r\n    END AS client_name,\r\n    currency,\r\n    country,\r\n    coupon_code,\r\n    order_net,\r\n    order_gross,\r\n    revenue_gross,\r\n    revenue_net,\r\n    gross_revenue_aed,\r\n    net_revenue_aed,\r\n    cpo_or_cps,\r\n    cancellation_rate,\r\n    commission_rate,\r\n    payout_rate,\r\n    net_revenue_calc,\r\n    net_orders_calc,\r\n    gross_commission,\r\n    net_commission,\r\n    gross_payout,\r\n    net_payout,\r\n    created_at,\r\n    order_date,\r\n    team_name,\r\n    channel_name,\r\n    function_name,\r\n    contact_name,\r\n    contact_record_id,\r\n    company_record_id,\r\n    team_record_id,\r\n    channel_record_id,\r\n    function_record_id,\r\n    coupon_record_id,\r\n    coupon_status,\r\n    REPLACE(\r\n        REPLACE(\r\n            REPLACE(UPPER(cpx.order_status), 'COMPLETED', 'COMPLETE'), \r\n            'outfordelivery', 'Out For Delivery'\r\n        ), \r\n        'returned_to_shipper', 'Returned To Shipper'\r\n    ) AS order_status,\r\n    CURRENT_TIMESTAMP AS update_timestamp\r\nFROM \r\n    raw.cpx_raw AS cpx\r\nWHERE \r\n    cpx.team_name = 'SSC';",
+						"sqlReaderQuery": "SELECT\r\n    transaction_id,\r\n    REPLACE(\r\n        REPLACE(\r\n            REPLACE(cpx.country_code, 'KSA', 'SAU'), \r\n            'UAE', 'ARE'\r\n        ), \r\n        'INT', ''\r\n    ) AS country_code,\r\n    client_id,\r\n    order_id,\r\n    customer_type,\r\n    CASE\r\n        -- Specific replacements first\r\n        WHEN cpx.client_name LIKE '%Beluar Bukhoor%' THEN 'Beluar'\r\n        WHEN cpx.client_name LIKE '%Foot locker%' THEN 'Footlocker'\r\n        WHEN cpx.client_name LIKE '%Levelshoes%' THEN 'Level Shoes'\r\n        WHEN cpx.client_name LIKE '%Mr. Mandoob%' THEN 'Mrmandoob'\r\n        WHEN cpx.client_name LIKE '%Sun & Sand%' THEN 'Sun & Sands Sports'\r\n        WHEN cpx.client_name LIKE '%HOMEBOX%' THEN 'Home Box'\r\n        WHEN cpx.client_name = '6thstreet' THEN '6th Street'\r\n        WHEN cpx.client_name = 'Bath & body works' THEN 'Bath and body works'\r\n        WHEN cpx.client_name LIKE '%Airalo%' THEN 'Airalo'\r\n        WHEN cpx.client_name = 'Toysrus' THEN 'Toys r us'\r\n        WHEN cpx.client_name = 'First cry' THEN 'Firstcry'\r\n        WHEN cpx.client_name = 'Foot locker' THEN 'Footlocker'\r\n        WHEN cpx.client_name = 'Go sport' THEN 'Go sports'\r\n        WHEN cpx.client_name = 'Izil' THEN 'Izil Beauty'\r\n        WHEN cpx.client_name LIKE '%Munch%' THEN 'Munch bakery'\r\n        WHEN cpx.client_name LIKE '%Basharacare%' THEN 'Bashara Care'\r\n        WHEN cpx.client_name LIKE '%Dropkicks%' THEN 'Dropkick'\r\n        WHEN cpx.client_name LIKE '%Temu%' THEN 'Temu'\r\n\r\n        -- Handle common patterns\r\n        WHEN cpx.client_name LIKE '% CPS - Influencers%' THEN REPLACE(cpx.client_name, ' CPS - Influencers', '')\r\n        WHEN cpx.client_name LIKE '% _Coupons%' THEN REPLACE(cpx.client_name, ' _Coupons', '')\r\n        WHEN cpx.client_name LIKE '% CPS-KSA, UAE and KWT%' THEN REPLACE(cpx.client_name, ' CPS-KSA, UAE and KWT', '')\r\n        WHEN cpx.client_name LIKE '% CPS \\KSA Coupon%' THEN REPLACE(cpx.client_name, ' CPS \\KSA Coupon ', '')\r\n        WHEN cpx.client_name LIKE '% CPS - Coupons UAE & KSA%' THEN REPLACE(cpx.client_name, ' CPS - Coupons UAE & KSA', '')\r\n        WHEN cpx.client_name LIKE '% CPS - Coupons UAE and KSA%' THEN REPLACE(cpx.client_name, ' CPS - Coupons UAE and KSA', '')\r\n        WHEN cpx.client_name LIKE '% KSA & UAE%' THEN REPLACE(cpx.client_name, ' KSA & UAE', '')\r\n        WHEN cpx.client_name LIKE '%CPS GCC-Coupons%' THEN REPLACE(cpx.client_name, 'CPS GCC-Coupons', '')\r\n        WHEN cpx.client_name LIKE '%- CPS Coupons GCC%' THEN REPLACE(cpx.client_name, '- CPS Coupons GCC', '')\r\n        WHEN cpx.client_name LIKE '%- CPS Links%' THEN REPLACE(cpx.client_name, '- CPS Links', '')\r\n        WHEN cpx.client_name LIKE '%-CPS%' THEN REPLACE(cpx.client_name, '-CPS', '')\r\n        WHEN cpx.client_name LIKE '%KSA- CPS%' THEN REPLACE(cpx.client_name, 'KSA- CPS', '')\r\n        WHEN cpx.client_name LIKE '%- CPS%' THEN REPLACE(cpx.client_name, '- CPS', '')\r\n        WHEN cpx.client_name LIKE '%CPS%' THEN REPLACE(cpx.client_name, 'CPS', '')\r\n        WHEN cpx.client_name LIKE '%Coupons%' THEN REPLACE(cpx.client_name, 'Coupons', '')\r\n        WHEN cpx.client_name LIKE '%_CPS' THEN REPLACE(cpx.client_name, '_CPS', '')\r\n        WHEN cpx.client_name LIKE '%_CPO' THEN REPLACE(cpx.client_name, '_CPO', '')\r\n        WHEN cpx.client_name LIKE '%_web' THEN REPLACE(cpx.client_name, '_web', '')\r\n        WHEN cpx.client_name LIKE '%_ksa' THEN REPLACE(cpx.client_name, '_ksa', '')\r\n        WHEN cpx.client_name LIKE '% - plt%' THEN REPLACE(cpx.client_name, ' - plt', '')\r\n        WHEN cpx.client_name LIKE '% - maf%' THEN REPLACE(cpx.client_name, ' - maf', '')\r\n        WHEN cpx.client_name LIKE '% - rakuten%' THEN REPLACE(cpx.client_name, ' - rakuten', '')\r\n        WHEN cpx.client_name LIKE '% (tbs)' THEN REPLACE(cpx.client_name, ' (tbs)', '')\r\n        WHEN cpx.client_name LIKE '% (durrapro)' THEN REPLACE(cpx.client_name, ' (durrapro)', '')\r\n\r\n        -- General replacements\r\n        WHEN cpx.client_name LIKE '%_%' THEN REPLACE(cpx.client_name, '_', ' ')\r\n\r\n        ELSE cpx.client_name\r\n    END AS client_name,\r\n    currency,\r\n    country,\r\n    coupon_code,\r\n    order_net,\r\n    order_gross,\r\n    revenue_gross,\r\n    revenue_net,\r\n    gross_revenue_aed,\r\n    net_revenue_aed,\r\n    cpo_or_cps,\r\n    cancellation_rate,\r\n    commission_rate,\r\n    payout_rate,\r\n    net_revenue_calc,\r\n    net_orders_calc,\r\n    gross_commission,\r\n    net_commission,\r\n    gross_payout,\r\n    net_payout,\r\n    created_at,\r\n    order_date,\r\n    team_name,\r\n    channel_name,\r\n    function_name,\r\n    contact_name,\r\n    contact_record_id,\r\n    company_record_id,\r\n    team_record_id,\r\n    channel_record_id,\r\n    function_record_id,\r\n    coupon_record_id,\r\n    coupon_status,\r\n    REPLACE(\r\n        REPLACE(\r\n            REPLACE(UPPER(cpx.order_status), 'COMPLETED', 'COMPLETE'), \r\n            'outfordelivery', 'Out For Delivery'\r\n        ), \r\n        'returned_to_shipper', 'Returned To Shipper'\r\n    ) AS order_status,\r\n    CURRENT_TIMESTAMP AS update_timestamp\r\nFROM \r\n    raw.cpx_raw AS cpx\r\nWHERE \r\n    cpx.team_name = 'SSC';",
 						"queryTimeout": "02:00:00",
 						"partitionOption": "None"
 					},
 					"sink": {
 						"type": "AzureSqlSink",
+						"preCopyScript": "truncate table curated.cpx",
 						"writeBehavior": "insert",
 						"sqlWriterUseTableLock": false,
-						"tableOption": "autoCreate",
 						"disableMetricsCollection": false
 					},
 					"enableStaging": false,
@@ -55,6 +57,65 @@
 						"parameters": {
 							"schema": "curated",
 							"table": "cpx"
+						}
+					}
+				]
+			},
+			{
+				"name": "Copy Araby to Curated",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "SELECT\r\n    campaign_name,\r\n    campaign_id,\r\n    automation,\r\n    last_updated_at,\r\n    campaign_start_year,\r\n    code,\r\n    date,\r\n    original_currency,\r\n    REPLACE(\r\n        REPLACE(\r\n            REPLACE(ara.country, 'KSA', 'SAU'),\r\n            'UAE', 'ARE'\r\n        ),\r\n        'INT', ''\r\n    ) AS country,\r\n    CASE \r\n        WHEN ara.customer_type = 'new' THEN 'New'\r\n        ELSE 'Returning' \r\n    END AS customer_type,\r\n    ad_set,\r\n    month,\r\n    month_number,\r\n    order_id,\r\n    CASE\r\n        -- Specific replacements first\r\n        WHEN ara.brand LIKE '%Beluar Bukhoor%' THEN 'Beluar'\r\n        WHEN ara.brand LIKE '%Foot locker%' THEN 'Footlocker'\r\n        WHEN ara.brand LIKE '%Levelshoes%' THEN 'Level Shoes'\r\n        WHEN ara.brand LIKE '%Mr. Mandoob%' THEN 'Mrmandoob'\r\n        WHEN ara.brand LIKE '%Sun & Sand%' THEN 'Sun & Sands Sports'\r\n        WHEN ara.brand LIKE '%HOMEBOX%' THEN 'Home Box'\r\n        WHEN ara.brand = '6thstreet' THEN '6th Street'\r\n        WHEN ara.brand = 'Bath & body works' THEN 'Bath and body works'\r\n        WHEN ara.brand LIKE '%Airalo%' THEN 'Airalo'\r\n        WHEN ara.brand = 'Toysrus' THEN 'Toys r us'\r\n        WHEN ara.brand = 'First cry' THEN 'Firstcry'\r\n        WHEN ara.brand = 'Foot locker' THEN 'Footlocker'\r\n        WHEN ara.brand = 'Go sport' THEN 'Go sports'\r\n        WHEN ara.brand = 'Izil' THEN 'Izil Beauty'\r\n        WHEN ara.brand LIKE '%Munch%' THEN 'Munch bakery'\r\n        WHEN ara.brand LIKE '%Basharacare%' THEN 'Bashara Care'\r\n        WHEN ara.brand LIKE '%Dropkicks%' THEN 'Dropkick'\r\n        WHEN ara.brand LIKE '%Temu%' THEN 'Temu'\r\n\r\n        -- Handle common patterns\r\n        WHEN ara.brand LIKE '% CPS - Influencers%' THEN REPLACE(ara.brand, ' CPS - Influencers', '')\r\n        WHEN ara.brand LIKE '% _Coupons%' THEN REPLACE(ara.brand, ' _Coupons', '')\r\n        WHEN ara.brand LIKE '% CPS-KSA, UAE and KWT%' THEN REPLACE(ara.brand, ' CPS-KSA, UAE and KWT', '')\r\n        WHEN ara.brand LIKE '% CPS \\KSA Coupon%' THEN REPLACE(ara.brand, ' CPS \\KSA Coupon ', '')\r\n        WHEN ara.brand LIKE '% CPS - Coupons UAE & KSA%' THEN REPLACE(ara.brand, ' CPS - Coupons UAE & KSA', '')\r\n        WHEN ara.brand LIKE '% CPS - Coupons UAE and KSA%' THEN REPLACE(ara.brand, ' CPS - Coupons UAE and KSA', '')\r\n        WHEN ara.brand LIKE '% KSA & UAE%' THEN REPLACE(ara.brand, ' KSA & UAE', '')\r\n        WHEN ara.brand LIKE '%CPS GCC-Coupons%' THEN REPLACE(ara.brand, 'CPS GCC-Coupons', '')\r\n        WHEN ara.brand LIKE '%- CPS Coupons GCC%' THEN REPLACE(ara.brand, '- CPS Coupons GCC', '')\r\n        WHEN ara.brand LIKE '%- CPS Links%' THEN REPLACE(ara.brand, '- CPS Links', '')\r\n        WHEN ara.brand LIKE '%-CPS%' THEN REPLACE(ara.brand, '-CPS', '')\r\n        WHEN ara.brand LIKE '%KSA- CPS%' THEN REPLACE(ara.brand, 'KSA- CPS', '')\r\n        WHEN ara.brand LIKE '%- CPS%' THEN REPLACE(ara.brand, '- CPS', '')\r\n        WHEN ara.brand LIKE '%CPS%' THEN REPLACE(ara.brand, 'CPS', '')\r\n        WHEN ara.brand LIKE '%Coupons%' THEN REPLACE(ara.brand, 'Coupons', '')\r\n        WHEN ara.brand LIKE '%_CPS' THEN REPLACE(ara.brand, '_CPS', '')\r\n        WHEN ara.brand LIKE '%_CPO' THEN REPLACE(ara.brand, '_CPO', '')\r\n        WHEN ara.brand LIKE '%_web' THEN REPLACE(ara.brand, '_web', '')\r\n        WHEN ara.brand LIKE '%_ksa' THEN REPLACE(ara.brand, '_ksa', '')\r\n        WHEN ara.brand LIKE '% - plt%' THEN REPLACE(ara.brand, ' - plt', '')\r\n        WHEN ara.brand LIKE '% - maf%' THEN REPLACE(ara.brand, ' - maf', '')\r\n        WHEN ara.brand LIKE '% - rakuten%' THEN REPLACE(ara.brand, ' - rakuten', '')\r\n        WHEN ara.brand LIKE '% (tbs)' THEN REPLACE(ara.brand, ' (tbs)', '')\r\n        WHEN ara.brand LIKE '% (durrapro)' THEN REPLACE(ara.brand, ' (durrapro)', '')\r\n\r\n        -- General replacements\r\n        WHEN ara.brand LIKE '%_%' THEN REPLACE(ara.brand, '_', ' ')\r\n\r\n        ELSE ara.brand\r\n    END AS brand,\r\n    customer_returning_days,\r\n    legal_entity_name,\r\n    aov,\r\n    action_type_label,\r\n    business_category_label,\r\n    orders,\r\n    revenue,\r\n    input_file_name,\r\n    CURRENT_TIMESTAMP AS update_timestamp\r\nFROM \r\n    raw.arabyads_raw AS ara",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"preCopyScript": "truncate table curated.arabyads",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "AzureSql",
+						"type": "DatasetReference",
+						"parameters": {
+							"schema": "raw",
+							"table": "arabyads_raw"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "AzureSql",
+						"type": "DatasetReference",
+						"parameters": {
+							"schema": "curated",
+							"table": "arabyads"
 						}
 					}
 				]
