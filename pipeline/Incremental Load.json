@@ -5,7 +5,14 @@
 			{
 				"name": "Set Today Date",
 				"type": "SetVariable",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "Set_Folder_Name",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"policy": {
 					"secureOutput": false,
 					"secureInput": false
@@ -14,13 +21,13 @@
 				"typeProperties": {
 					"variableName": "Today_Date",
 					"value": {
-						"value": "@utcNow('yyyy-MM-dd')",
+						"value": "@formatDateTime(addHours(utcNow(), 4), 'yyyy-MM-dd')",
 						"type": "Expression"
 					}
 				}
 			},
 			{
-				"name": "Set From Date",
+				"name": "Get_Dubai_Time",
 				"type": "SetVariable",
 				"dependsOn": [],
 				"policy": {
@@ -29,23 +36,41 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"variableName": "Refresh_From_Date",
+					"variableName": "Dubai_Time",
 					"value": {
-						"value": "@adddays(utcNow(),variables('Refresh Interval'),'yyyy-MM-dd')",
+						"value": "@int(formatDateTime(addHours(utcNow(), 4), 'HH'))",
 						"type": "Expression"
 					}
 				}
 			},
 			{
-				"name": "Get Metadata1",
-				"type": "GetMetadata",
+				"name": "Set_Folder_Name",
+				"type": "SetVariable",
 				"dependsOn": [
 					{
-						"activity": "Set From Date",
+						"activity": "Get_Dubai_Time",
 						"dependencyConditions": [
 							"Succeeded"
 						]
-					},
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "Folder_Name",
+					"value": {
+						"value": "@if(less(variables('Dubai_Time'), 7), '7AM', \nif(less(variables('Dubai_Time'), 13), '1PM', '3PM'))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Copy Noon Data",
+				"type": "Copy",
+				"dependsOn": [
 					{
 						"activity": "Set Today Date",
 						"dependencyConditions": [
@@ -62,40 +87,478 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"dataset": {
-						"referenceName": "DelimitedText_Parameterized",
-						"type": "DatasetReference",
-						"parameters": {
-							"file_path": {
-								"value": "@concat('web_scraper_raw_dump/noon/',variables('Today_Date'),'/')",
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"wildcardFolderPath": {
+								"value": "@concat('web_scraper_raw_dump/noon/',variables('Today_Date'),'/',variables('Folder_Name'))",
 								"type": "Expression"
-							}
+							},
+							"wildcardFileName": "*",
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
 						}
 					},
-					"fieldList": [
-						"lastModified",
-						"childItems",
-						"itemName"
-					],
-					"storeSettings": {
-						"type": "AzureBlobFSReadSettings",
-						"enablePartitionDiscovery": false
+					"sink": {
+						"type": "AzureSqlSink",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false,
+						"tableOption": "autoCreate",
+						"disableMetricsCollection": false
 					},
-					"formatSettings": {
-						"type": "DelimitedTextReadSettings"
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
 					}
-				}
+				},
+				"inputs": [
+					{
+						"referenceName": "DelimitedText",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "AzureSql",
+						"type": "DatasetReference",
+						"parameters": {
+							"schema": "sandbox",
+							"table": "noon"
+						}
+					}
+				]
+			},
+			{
+				"name": "Copy Platformance Data",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Set Today Date",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"wildcardFolderPath": {
+								"value": "@concat('web_scraper_raw_dump/Platformance/',variables('Today_Date'),'/',variables('Folder_Name'))",
+								"type": "Expression"
+							},
+							"wildcardFileName": "*",
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false,
+						"tableOption": "autoCreate",
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "DelimitedText",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "AzureSql",
+						"type": "DatasetReference",
+						"parameters": {
+							"schema": "sandbox",
+							"table": "platformance"
+						}
+					}
+				]
+			},
+			{
+				"name": "Copy Digizag Data",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Set Today Date",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"wildcardFolderPath": {
+								"value": "@concat('web_scraper_raw_dump/Digizag/',variables('Today_Date'),'/',variables('Folder_Name'))",
+								"type": "Expression"
+							},
+							"wildcardFileName": "*",
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false,
+						"tableOption": "autoCreate",
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "DelimitedText",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "AzureSql",
+						"type": "DatasetReference",
+						"parameters": {
+							"schema": "sandbox",
+							"table": "digizag"
+						}
+					}
+				]
+			},
+			{
+				"name": "Copy AdmitAds Data",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Set Today Date",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"wildcardFolderPath": {
+								"value": "@concat('web_scraper_raw_dump/AdmitAds/',variables('Today_Date'),'/',variables('Folder_Name'))",
+								"type": "Expression"
+							},
+							"wildcardFileName": "*",
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false,
+						"tableOption": "autoCreate",
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "DelimitedText",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "AzureSql",
+						"type": "DatasetReference",
+						"parameters": {
+							"schema": "sandbox",
+							"table": "admitads"
+						}
+					}
+				]
+			},
+			{
+				"name": "Copy ArabyAds Data",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Set Today Date",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"wildcardFolderPath": {
+								"value": "@concat('web_scraper_raw_dump/ArabyAds/*/',variables('Today_Date'),'/',variables('Folder_Name'))",
+								"type": "Expression"
+							},
+							"wildcardFileName": "*",
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false,
+						"tableOption": "autoCreate",
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "DelimitedText",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "AzureSql",
+						"type": "DatasetReference",
+						"parameters": {
+							"schema": "sandbox",
+							"table": "arabyads"
+						}
+					}
+				]
+			},
+			{
+				"name": "Copy 6th Street Data",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Set Today Date",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"wildcardFolderPath": {
+								"value": "@concat('web_scraper_raw_dump/6Street/',variables('Today_Date'),'/',variables('Folder_Name'))",
+								"type": "Expression"
+							},
+							"wildcardFileName": "*",
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false,
+						"tableOption": "autoCreate",
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "DelimitedText",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "AzureSql",
+						"type": "DatasetReference",
+						"parameters": {
+							"schema": "sandbox",
+							"table": "6thstreet"
+						}
+					}
+				]
+			},
+			{
+				"name": "Copy CPX CPBI",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Set Today Date",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"preCopyScript": "truncate table raw.cpx_raw",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "AzureSqlTableDados",
+						"type": "DatasetReference",
+						"parameters": {
+							"schema": "cpx",
+							"table": "cpx_coupon_performance_bi"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "AzureSql",
+						"type": "DatasetReference",
+						"parameters": {
+							"schema": "raw",
+							"table": "cpx_raw"
+						}
+					}
+				]
 			}
 		],
 		"variables": {
 			"Today_Date": {
 				"type": "String"
 			},
-			"Refresh Interval": {
-				"type": "Integer",
-				"defaultValue": -30
+			"Dubai_Time": {
+				"type": "Integer"
 			},
-			"Refresh_From_Date": {
+			"Folder_Name": {
 				"type": "String"
 			}
 		},
