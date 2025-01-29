@@ -119,6 +119,63 @@
 						}
 					}
 				]
+			},
+			{
+				"name": "Copy Noon to Curated",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "select\r\n[ORDER DATE],\r\nADVERTISER,\r\nPLATFORM,\r\nCOUNTRY,\r\n[COUPON CODE],\r\nTIER,\r\n[TOTAL ORDERS],\r\n[NON-PAYABLE ORDERS],\r\n[TOTAL VALUE],\r\n[FTU ORDERS],\r\n[FTU ORDER VALUE],\r\n[RTU ORDERS]\r\ninput_file_name,\r\nCURRENT_TIMESTAMP as update_timestamp\r\nfrom raw.noon_raw",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false,
+						"tableOption": "autoCreate",
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "AzureSql",
+						"type": "DatasetReference",
+						"parameters": {
+							"schema": "raw",
+							"table": "noon_raw"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "AzureSql",
+						"type": "DatasetReference",
+						"parameters": {
+							"schema": "curated",
+							"table": "noon"
+						}
+					}
+				]
 			}
 		],
 		"annotations": []
