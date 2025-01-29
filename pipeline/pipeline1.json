@@ -1,0 +1,65 @@
+{
+	"name": "pipeline1",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy CPX to Curated",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "SELECT\r\n    transaction_id,\r\n    REPLACE(\r\n        REPLACE(\r\n            REPLACE(cpx.country_code, 'KSA', 'SAU'), \r\n            'UAE', 'ARE'\r\n        ), \r\n        'INT', ''\r\n    ) AS country_code,\r\n    client_id,\r\n    order_id,\r\n    customer_type,\r\n    CASE\r\n        WHEN cpx.client_name = '6thstreet' THEN '6th Street'\r\n        WHEN cpx.client_name = 'Bath & body works' THEN 'Bath and body works'\r\n        WHEN cpx.client_name LIKE '%Airalo%' THEN 'Airalo'\r\n        WHEN cpx.client_name = 'Toysrus' THEN 'Toys r us'\r\n        WHEN cpx.client_name = 'First cry' THEN 'Firstcry'\r\n        WHEN cpx.client_name = 'Foot locker' THEN 'Footlocker'\r\n        WHEN cpx.client_name = 'Go sport' THEN 'Go sports'\r\n        WHEN cpx.client_name = 'Izil' THEN 'Izil Beauty'\r\n        WHEN cpx.client_name LIKE '%Munch%' THEN 'Munch bakery'\r\n        WHEN cpx.client_name LIKE '%Basharacare%' THEN 'Bashara Care'\r\n        WHEN cpx.client_name LIKE '%Dropkicks%' THEN 'Dropkick'\r\n        WHEN cpx.client_name LIKE '%Temu%' THEN 'Temu'\r\n        WHEN cpx.client_name LIKE '%_CPS' THEN REPLACE(cpx.client_name, '_CPS', '')\r\n        WHEN cpx.client_name LIKE '%_CPO' THEN REPLACE(cpx.client_name, '_CPO', '')\r\n        WHEN cpx.client_name LIKE '%_web' THEN REPLACE(cpx.client_name, '_web', '')\r\n        WHEN cpx.client_name LIKE '%_ksa' THEN REPLACE(cpx.client_name, '_ksa', '')\r\n        WHEN cpx.client_name LIKE '% - plt%' THEN REPLACE(cpx.client_name, ' - plt', '')\r\n        WHEN cpx.client_name LIKE '% - maf%' THEN REPLACE(cpx.client_name, ' - maf', '')\r\n        WHEN cpx.client_name LIKE '% - rakuten%' THEN REPLACE(cpx.client_name, ' - rakuten', '')\r\n        WHEN cpx.client_name LIKE '% (tbs)' THEN REPLACE(cpx.client_name, ' (tbs)', '')\r\n        WHEN cpx.client_name LIKE '% (durrapro)' THEN REPLACE(cpx.client_name, ' (durrapro)', '')\r\n        WHEN cpx.client_name LIKE '%_%' THEN REPLACE(cpx.client_name, '_', ' ')\r\n        ELSE cpx.client_name\r\n    END AS client_name,\r\n    currency,\r\n    country,\r\n    coupon_code,\r\n    order_net,\r\n    order_gross,\r\n    revenue_gross,\r\n    revenue_net,\r\n    gross_revenue_aed,\r\n    net_revenue_aed,\r\n    cpo_or_cps,\r\n    cancellation_rate,\r\n    commission_rate,\r\n    payout_rate,\r\n    net_revenue_calc,\r\n    net_orders_calc,\r\n    gross_commission,\r\n    net_commission,\r\n    gross_payout,\r\n    net_payout,\r\n    created_at,\r\n    order_date,\r\n    team_name,\r\n    channel_name,\r\n    function_name,\r\n    contact_name,\r\n    contact_record_id,\r\n    company_record_id,\r\n    team_record_id,\r\n    channel_record_id,\r\n    function_record_id,\r\n    coupon_record_id,\r\n    coupon_status,\r\n    REPLACE(\r\n        REPLACE(\r\n            REPLACE(UPPER(cpx.order_status), 'COMPLETED', 'COMPLETE'), \r\n            'outfordelivery', 'Out For Delivery'\r\n        ), \r\n        'returned_to_shipper', 'Returned To Shipper'\r\n    ) AS order_status,\r\n    CURRENT_TIMESTAMP AS update_timestamp\r\nFROM \r\n    raw.cpx_raw AS cpx\r\nWHERE \r\n    cpx.team_name = 'SSC';",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false,
+						"tableOption": "autoCreate",
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "AzureSql",
+						"type": "DatasetReference",
+						"parameters": {
+							"schema": "raw",
+							"table": "cpx_raw"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "AzureSql",
+						"type": "DatasetReference",
+						"parameters": {
+							"schema": "curated",
+							"table": "cpx"
+						}
+					}
+				]
+			}
+		],
+		"annotations": []
+	}
+}
