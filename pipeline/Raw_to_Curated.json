@@ -365,7 +365,7 @@
 					},
 					"sink": {
 						"type": "AzureSqlSink",
-						"preCopyScript": "truncate table curated.6thstreet",
+						"preCopyScript": "truncate table curated.[6thstreet]",
 						"writeBehavior": "insert",
 						"sqlWriterUseTableLock": false,
 						"disableMetricsCollection": false
