@@ -143,9 +143,9 @@
 					},
 					"sink": {
 						"type": "AzureSqlSink",
+						"preCopyScript": "truncate table curated.noon",
 						"writeBehavior": "insert",
 						"sqlWriterUseTableLock": false,
-						"tableOption": "autoCreate",
 						"disableMetricsCollection": false
 					},
 					"enableStaging": false,
@@ -181,6 +181,65 @@
 			},
 			{
 				"name": "Copy Digizag to Curated",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "SELECT\r\n    CASE\r\n        -- Specific replacements first\r\n        WHEN dig.[Offer.name] LIKE '%Beluar Bukhoor%' THEN 'Beluar'\r\n        WHEN dig.[Offer.name] LIKE '%Foot locker%' THEN 'Footlocker'\r\n        WHEN dig.[Offer.name] LIKE '%Levelshoes%' THEN 'Level Shoes'\r\n        WHEN dig.[Offer.name] LIKE '%Mr. Mandoob%' THEN 'Mrmandoob'\r\n        WHEN dig.[Offer.name] LIKE '%Sun & Sand%' THEN 'Sun & Sands Sports'\r\n        WHEN dig.[Offer.name] LIKE '%HOMEBOX%' THEN 'Home Box'\r\n        WHEN dig.[Offer.name] = '6thstreet' THEN '6th Street'\r\n        WHEN dig.[Offer.name] = 'Bath & body works' THEN 'Bath and body works'\r\n        WHEN dig.[Offer.name] LIKE '%Airalo%' THEN 'Airalo'\r\n        WHEN dig.[Offer.name] = 'Toysrus' THEN 'Toys r us'\r\n        WHEN dig.[Offer.name] = 'First cry' THEN 'Firstcry'\r\n        WHEN dig.[Offer.name] = 'Foot locker' THEN 'Footlocker'\r\n        WHEN dig.[Offer.name] = 'Go sport' THEN 'Go sports'\r\n        WHEN dig.[Offer.name] = 'Izil' THEN 'Izil Beauty'\r\n        WHEN dig.[Offer.name] LIKE '%Munch%' THEN 'Munch bakery'\r\n        WHEN dig.[Offer.name] LIKE '%Basharacare%' THEN 'Bashara Care'\r\n        WHEN dig.[Offer.name] LIKE '%Dropkicks%' THEN 'Dropkick'\r\n        WHEN dig.[Offer.name] LIKE '%Temu%' THEN 'Temu'\r\n\r\n        -- Handle common patterns\r\n        WHEN dig.[Offer.name] LIKE '% CPS - Influencers%' THEN REPLACE(dig.[Offer.name], ' CPS - Influencers', '')\r\n        WHEN dig.[Offer.name] LIKE '% _Coupons%' THEN REPLACE(dig.[Offer.name], ' _Coupons', '')\r\n        WHEN dig.[Offer.name] LIKE '% CPS-KSA, UAE and KWT%' THEN REPLACE(dig.[Offer.name], ' CPS-KSA, UAE and KWT', '')\r\n        WHEN dig.[Offer.name] LIKE '% CPS \\KSA Coupon%' THEN REPLACE(dig.[Offer.name], ' CPS \\KSA Coupon ', '')\r\n        WHEN dig.[Offer.name] LIKE '% CPS - Coupons UAE & KSA%' THEN REPLACE(dig.[Offer.name], ' CPS - Coupons UAE & KSA', '')\r\n        WHEN dig.[Offer.name] LIKE '% CPS - Coupons UAE and KSA%' THEN REPLACE(dig.[Offer.name], ' CPS - Coupons UAE and KSA', '')\r\n        WHEN dig.[Offer.name] LIKE '% KSA & UAE%' THEN REPLACE(dig.[Offer.name], ' KSA & UAE', '')\r\n        WHEN dig.[Offer.name] LIKE '%CPS GCC-Coupons%' THEN REPLACE(dig.[Offer.name], 'CPS GCC-Coupons', '')\r\n        WHEN dig.[Offer.name] LIKE '%- CPS Coupons GCC%' THEN REPLACE(dig.[Offer.name], '- CPS Coupons GCC', '')\r\n        WHEN dig.[Offer.name] LIKE '%- CPS Links%' THEN REPLACE(dig.[Offer.name], '- CPS Links', '')\r\n        WHEN dig.[Offer.name] LIKE '%-CPS%' THEN REPLACE(dig.[Offer.name], '-CPS', '')\r\n        WHEN dig.[Offer.name] LIKE '%KSA- CPS%' THEN REPLACE(dig.[Offer.name], 'KSA- CPS', '')\r\n        WHEN dig.[Offer.name] LIKE '%- CPS%' THEN REPLACE(dig.[Offer.name], '- CPS', '')\r\n        WHEN dig.[Offer.name] LIKE '%CPS%' THEN REPLACE(dig.[Offer.name], 'CPS', '')\r\n        WHEN dig.[Offer.name] LIKE '%Coupons%' THEN REPLACE(dig.[Offer.name], 'Coupons', '')\r\n        WHEN dig.[Offer.name] LIKE '%_CPS' THEN REPLACE(dig.[Offer.name], '_CPS', '')\r\n        WHEN dig.[Offer.name] LIKE '%_CPO' THEN REPLACE(dig.[Offer.name], '_CPO', '')\r\n        WHEN dig.[Offer.name] LIKE '%_web' THEN REPLACE(dig.[Offer.name], '_web', '')\r\n        WHEN dig.[Offer.name] LIKE '%_ksa' THEN REPLACE(dig.[Offer.name], '_ksa', '')\r\n        WHEN dig.[Offer.name] LIKE '% - plt%' THEN REPLACE(dig.[Offer.name], ' - plt', '')\r\n        WHEN dig.[Offer.name] LIKE '% - maf%' THEN REPLACE(dig.[Offer.name], ' - maf', '')\r\n        WHEN dig.[Offer.name] LIKE '% - rakuten%' THEN REPLACE(dig.[Offer.name], ' - rakuten', '')\r\n        WHEN dig.[Offer.name] LIKE '% (tbs)' THEN REPLACE(dig.[Offer.name], ' (tbs)', '')\r\n        WHEN dig.[Offer.name] LIKE '% (durrapro)' THEN REPLACE(dig.[Offer.name], ' (durrapro)', '')\r\n\r\n        -- General replacements\r\n        WHEN dig.[Offer.name] LIKE '%_%' THEN REPLACE(dig.[Offer.name], '_', ' ')\r\n\r\n        ELSE dig.[Offer.name]\r\n    END AS [Offer.name],\r\n    [Goal.name],\r\n    [Stat.promo_code],\r\n    [Country.name],\r\n    [Stat.affiliate_info1],\r\n    [Stat.impressions],\r\n    [Stat.conversions],\r\n    [Stat.clicks],\r\n    [Stat.payout],\r\n    [Stat.currency],\r\n    [Stat.payout_type],\r\n    [Stat.date],\r\n    [Stat.sale_amount],\r\n    [Stat.ctr],\r\n    [Stat.ltr],\r\n    [Stat.offer_id],\r\n    [Offer.id],\r\n    [Goal.id],\r\n    [Country.code],\r\n    currency_payout,\r\n    sale_amount,\r\n    input_file_name,\r\n    CURRENT_TIMESTAMP AS update_timestamp\r\nFROM \r\n    raw.digizag_raw dig\r\nWHERE \r\n    dig.[Stat.payout] != '649249.585900'",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"preCopyScript": "truncate table curated.digizag",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "AzureSql",
+						"type": "DatasetReference",
+						"parameters": {
+							"schema": "raw",
+							"table": "digizag_raw"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "AzureSql",
+						"type": "DatasetReference",
+						"parameters": {
+							"schema": "curated",
+							"table": "digizag"
+						}
+					}
+				]
+			},
+			{
+				"name": "Copy Digizag to Curated_copy1",
 				"type": "Copy",
 				"dependsOn": [],
 				"policy": {
