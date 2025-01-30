@@ -326,6 +326,162 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/Update dim and fact tables')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Update dim_brands",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[update_dim_brands]"
+						},
+						"linkedServiceName": {
+							"referenceName": "AzureSqlDatabase",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "Update dim_coupons",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Update dim_brands",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[update_dim_coupons]"
+						},
+						"linkedServiceName": {
+							"referenceName": "AzureSqlDatabase",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "Update dim_links",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Update dim_brands",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[update_dim_links]"
+						},
+						"linkedServiceName": {
+							"referenceName": "AzureSqlDatabase",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "Update dim_offers",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Update dim_brands",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[update_dim_offers]"
+						},
+						"linkedServiceName": {
+							"referenceName": "AzureSqlDatabase",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "Update fact_performance",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Update dim_coupons",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "Update dim_links",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "Update dim_offers",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[update_fact_performance]"
+						},
+						"linkedServiceName": {
+							"referenceName": "AzureSqlDatabase",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureSqlDatabase')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/Historical_Ingestion')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -990,6 +1146,1374 @@
 				"[concat(variables('factoryId'), '/datasets/AzureSql')]",
 				"[concat(variables('factoryId'), '/datasets/Excel')]",
 				"[concat(variables('factoryId'), '/datasets/AzureSqlTableDados')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Update raw and curated layer')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Set Today Date",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "Set_Folder_Name",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "Today_Date",
+							"value": {
+								"value": "@formatDateTime(addHours(utcNow(), 4), 'yyyy-MM-dd')",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Get_Dubai_Time",
+						"type": "SetVariable",
+						"dependsOn": [],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "Dubai_Time",
+							"value": {
+								"value": "@int(formatDateTime(addHours(utcNow(), 4), 'HH'))",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Set_Folder_Name",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "Get_Dubai_Time",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "Folder_Name",
+							"value": {
+								"value": "@if(less(variables('Dubai_Time'), 13), '7AM', \nif(less(variables('Dubai_Time'), 15), '1PM', '3PM'))\n",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Copy Noon Data",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Set Today Date",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"additionalColumns": [
+									{
+										"name": "input_file_name",
+										"value": "$$FILEPATH"
+									},
+									{
+										"name": "update_timestamp",
+										"value": {
+											"value": "@utcNow()",
+											"type": "Expression"
+										}
+									}
+								],
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"wildcardFolderPath": {
+										"value": "@concat('web_scraper_raw_dump/noon/',variables('Today_Date'),'/',variables('Folder_Name'))",
+										"type": "Expression"
+									},
+									"wildcardFileName": "*",
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"preCopyScript": "drop table if exists sandbox.noon",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false,
+								"tableOption": "autoCreate",
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DelimitedText",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "AzureSql",
+								"type": "DatasetReference",
+								"parameters": {
+									"schema": "sandbox",
+									"table": "noon"
+								}
+							}
+						]
+					},
+					{
+						"name": "Copy Platformance Data",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Set Today Date",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"additionalColumns": [
+									{
+										"name": "input_file_name",
+										"value": "$$FILEPATH"
+									},
+									{
+										"name": "update_timestamp",
+										"value": {
+											"value": "@utcNow()",
+											"type": "Expression"
+										}
+									}
+								],
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"wildcardFolderPath": {
+										"value": "@concat('web_scraper_raw_dump/Platformance/',variables('Today_Date'),'/',variables('Folder_Name'))",
+										"type": "Expression"
+									},
+									"wildcardFileName": "*",
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"preCopyScript": "drop table if exists sandbox.platformance",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false,
+								"tableOption": "autoCreate",
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DelimitedText",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "AzureSql",
+								"type": "DatasetReference",
+								"parameters": {
+									"schema": "sandbox",
+									"table": "platformance"
+								}
+							}
+						]
+					},
+					{
+						"name": "Copy Digizag Data",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Set Today Date",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"additionalColumns": [
+									{
+										"name": "input_file_name",
+										"value": "$$FILEPATH"
+									},
+									{
+										"name": "update_timestamp",
+										"value": "$$FILEPATH"
+									}
+								],
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"wildcardFolderPath": {
+										"value": "@concat('web_scraper_raw_dump/Digizag/',variables('Today_Date'),'/',variables('Folder_Name'))",
+										"type": "Expression"
+									},
+									"wildcardFileName": "*",
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"preCopyScript": "drop table if exists sandbox.digizag",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false,
+								"tableOption": "autoCreate",
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DelimitedText",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "AzureSql",
+								"type": "DatasetReference",
+								"parameters": {
+									"schema": "sandbox",
+									"table": "digizag"
+								}
+							}
+						]
+					},
+					{
+						"name": "Copy AdmitAds Data",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Set Today Date",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "ExcelSource",
+								"additionalColumns": [
+									{
+										"name": "input_file_name",
+										"value": "$$FILEPATH"
+									},
+									{
+										"name": "update_timestamp",
+										"value": "$$FILEPATH"
+									}
+								],
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"wildcardFolderPath": {
+										"value": "@concat('web_scraper_raw_dump/AdmitAds/',variables('Today_Date'),'/',variables('Folder_Name'))",
+										"type": "Expression"
+									},
+									"wildcardFileName": "*",
+									"enablePartitionDiscovery": false
+								}
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"preCopyScript": "drop table if exists sandbox.admitads",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false,
+								"tableOption": "autoCreate",
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "Excel",
+								"type": "DatasetReference",
+								"parameters": {
+									"Sheet_name": "Statistics"
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "AzureSql",
+								"type": "DatasetReference",
+								"parameters": {
+									"schema": "sandbox",
+									"table": "admitads"
+								}
+							}
+						]
+					},
+					{
+						"name": "Copy ArabyAds Data",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Set Today Date",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"additionalColumns": [
+									{
+										"name": "input_file_name",
+										"value": "$$FILEPATH"
+									},
+									{
+										"name": "update_timestamp",
+										"value": {
+											"value": "@utcNow()",
+											"type": "Expression"
+										}
+									}
+								],
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"wildcardFolderPath": {
+										"value": "@concat('web_scraper_raw_dump/ArabyAds/*/',variables('Today_Date'),'/',variables('Folder_Name'))",
+										"type": "Expression"
+									},
+									"wildcardFileName": "*",
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"preCopyScript": "drop table if exists sandbox.arabyads",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false,
+								"tableOption": "autoCreate",
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DelimitedText",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "AzureSql",
+								"type": "DatasetReference",
+								"parameters": {
+									"schema": "sandbox",
+									"table": "arabyads"
+								}
+							}
+						]
+					},
+					{
+						"name": "Copy 6th Street Data",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Set Today Date",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"additionalColumns": [
+									{
+										"name": "input_file_name",
+										"value": "$$FILEPATH"
+									},
+									{
+										"name": "update_timestamp",
+										"value": "$$FILEPATH"
+									}
+								],
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"wildcardFolderPath": {
+										"value": "@concat('web_scraper_raw_dump/6Street/',variables('Today_Date'),'/',variables('Folder_Name'))",
+										"type": "Expression"
+									},
+									"wildcardFileName": "*",
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"preCopyScript": "drop table if exists sandbox.[6thstreet]",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false,
+								"tableOption": "autoCreate",
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DelimitedText",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "AzureSql",
+								"type": "DatasetReference",
+								"parameters": {
+									"schema": "sandbox",
+									"table": "6thstreet"
+								}
+							}
+						]
+					},
+					{
+						"name": "Copy CPX CPBI",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Set Today Date",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"preCopyScript": "truncate table raw.cpx_raw",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false,
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "AzureSqlTableDados",
+								"type": "DatasetReference",
+								"parameters": {
+									"schema": "cpx",
+									"table": "cpx_coupon_performance_bi"
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "AzureSql",
+								"type": "DatasetReference",
+								"parameters": {
+									"schema": "raw",
+									"table": "cpx_raw"
+								}
+							}
+						]
+					},
+					{
+						"name": "Update Noon Raw",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Copy Noon Data",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[refresh_raw_noon_data]"
+						},
+						"linkedServiceName": {
+							"referenceName": "AzureSqlDatabase",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "Update AdmitAds Raw",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Copy AdmitAds Data",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[refresh_raw_admitads_data]"
+						},
+						"linkedServiceName": {
+							"referenceName": "AzureSqlDatabase",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "Update Digizag Raw",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Copy Digizag Data",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[refresh_raw_digizag_data]"
+						},
+						"linkedServiceName": {
+							"referenceName": "AzureSqlDatabase",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "Update Platformance Raw",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Copy Platformance Data",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[refresh_raw_platformance_data]"
+						},
+						"linkedServiceName": {
+							"referenceName": "AzureSqlDatabase",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "Update ArabyAds Raw",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Copy ArabyAds Data",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[refresh_raw_arabyads_data]"
+						},
+						"linkedServiceName": {
+							"referenceName": "AzureSqlDatabase",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "Update 6th Street Raw",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Copy 6th Street Data",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[refresh_raw_6thstreet_data]"
+						},
+						"linkedServiceName": {
+							"referenceName": "AzureSqlDatabase",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "Copy CPX to Curated",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Copy CPX CPBI",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": "SELECT\r\n    transaction_id,\r\n    REPLACE(\r\n        REPLACE(\r\n            REPLACE(cpx.country_code, 'KSA', 'SAU'), \r\n            'UAE', 'ARE'\r\n        ), \r\n        'INT', ''\r\n    ) AS country_code,\r\n    client_id,\r\n    order_id,\r\n    customer_type,\r\n    CASE\r\n        -- Specific replacements first\r\n        WHEN cpx.client_name LIKE '%Beluar Bukhoor%' THEN 'Beluar'\r\n        WHEN cpx.client_name LIKE '%Foot locker%' THEN 'Footlocker'\r\n        WHEN cpx.client_name LIKE '%Levelshoes%' THEN 'Level Shoes'\r\n        WHEN cpx.client_name LIKE '%Mr. Mandoob%' THEN 'Mrmandoob'\r\n        WHEN cpx.client_name LIKE '%Sun & Sand%' THEN 'Sun & Sands Sports'\r\n        WHEN cpx.client_name LIKE '%HOMEBOX%' THEN 'Home Box'\r\n        WHEN cpx.client_name = '6thstreet' THEN '6th Street'\r\n        WHEN cpx.client_name = 'Bath & body works' THEN 'Bath and body works'\r\n        WHEN cpx.client_name LIKE '%Airalo%' THEN 'Airalo'\r\n        WHEN cpx.client_name = 'Toysrus' THEN 'Toys r us'\r\n        WHEN cpx.client_name = 'First cry' THEN 'Firstcry'\r\n        WHEN cpx.client_name = 'Foot locker' THEN 'Footlocker'\r\n        WHEN cpx.client_name = 'Go sport' THEN 'Go sports'\r\n        WHEN cpx.client_name = 'Izil' THEN 'Izil Beauty'\r\n        WHEN cpx.client_name LIKE '%Munch%' THEN 'Munch bakery'\r\n        WHEN cpx.client_name LIKE '%Basharacare%' THEN 'Bashara Care'\r\n        WHEN cpx.client_name LIKE '%Dropkicks%' THEN 'Dropkick'\r\n        WHEN cpx.client_name LIKE '%Temu%' THEN 'Temu'\r\n\r\n        -- Handle common patterns\r\n        WHEN cpx.client_name LIKE '% CPS - Influencers%' THEN REPLACE(cpx.client_name, ' CPS - Influencers', '')\r\n        WHEN cpx.client_name LIKE '% _Coupons%' THEN REPLACE(cpx.client_name, ' _Coupons', '')\r\n        WHEN cpx.client_name LIKE '% CPS-KSA, UAE and KWT%' THEN REPLACE(cpx.client_name, ' CPS-KSA, UAE and KWT', '')\r\n        WHEN cpx.client_name LIKE '% CPS \\KSA Coupon%' THEN REPLACE(cpx.client_name, ' CPS \\KSA Coupon ', '')\r\n        WHEN cpx.client_name LIKE '% CPS - Coupons UAE & KSA%' THEN REPLACE(cpx.client_name, ' CPS - Coupons UAE & KSA', '')\r\n        WHEN cpx.client_name LIKE '% CPS - Coupons UAE and KSA%' THEN REPLACE(cpx.client_name, ' CPS - Coupons UAE and KSA', '')\r\n        WHEN cpx.client_name LIKE '% KSA & UAE%' THEN REPLACE(cpx.client_name, ' KSA & UAE', '')\r\n        WHEN cpx.client_name LIKE '%CPS GCC-Coupons%' THEN REPLACE(cpx.client_name, 'CPS GCC-Coupons', '')\r\n        WHEN cpx.client_name LIKE '%- CPS Coupons GCC%' THEN REPLACE(cpx.client_name, '- CPS Coupons GCC', '')\r\n        WHEN cpx.client_name LIKE '%- CPS Links%' THEN REPLACE(cpx.client_name, '- CPS Links', '')\r\n        WHEN cpx.client_name LIKE '%-CPS%' THEN REPLACE(cpx.client_name, '-CPS', '')\r\n        WHEN cpx.client_name LIKE '%KSA- CPS%' THEN REPLACE(cpx.client_name, 'KSA- CPS', '')\r\n        WHEN cpx.client_name LIKE '%- CPS%' THEN REPLACE(cpx.client_name, '- CPS', '')\r\n        WHEN cpx.client_name LIKE '%CPS%' THEN REPLACE(cpx.client_name, 'CPS', '')\r\n        WHEN cpx.client_name LIKE '%Coupons%' THEN REPLACE(cpx.client_name, 'Coupons', '')\r\n        WHEN cpx.client_name LIKE '%_CPS' THEN REPLACE(cpx.client_name, '_CPS', '')\r\n        WHEN cpx.client_name LIKE '%_CPO' THEN REPLACE(cpx.client_name, '_CPO', '')\r\n        WHEN cpx.client_name LIKE '%_web' THEN REPLACE(cpx.client_name, '_web', '')\r\n        WHEN cpx.client_name LIKE '%_ksa' THEN REPLACE(cpx.client_name, '_ksa', '')\r\n        WHEN cpx.client_name LIKE '% - plt%' THEN REPLACE(cpx.client_name, ' - plt', '')\r\n        WHEN cpx.client_name LIKE '% - maf%' THEN REPLACE(cpx.client_name, ' - maf', '')\r\n        WHEN cpx.client_name LIKE '% - rakuten%' THEN REPLACE(cpx.client_name, ' - rakuten', '')\r\n        WHEN cpx.client_name LIKE '% (tbs)' THEN REPLACE(cpx.client_name, ' (tbs)', '')\r\n        WHEN cpx.client_name LIKE '% (durrapro)' THEN REPLACE(cpx.client_name, ' (durrapro)', '')\r\n\r\n        -- General replacements\r\n        WHEN cpx.client_name LIKE '%_%' THEN REPLACE(cpx.client_name, '_', ' ')\r\n\r\n        ELSE cpx.client_name\r\n    END AS client_name,\r\n    currency,\r\n    country,\r\n    coupon_code,\r\n    order_net,\r\n    order_gross,\r\n    revenue_gross,\r\n    revenue_net,\r\n    gross_revenue_aed,\r\n    net_revenue_aed,\r\n    cpo_or_cps,\r\n    cancellation_rate,\r\n    commission_rate,\r\n    payout_rate,\r\n    net_revenue_calc,\r\n    net_orders_calc,\r\n    gross_commission,\r\n    net_commission,\r\n    gross_payout,\r\n    net_payout,\r\n    created_at,\r\n    order_date,\r\n    team_name,\r\n    channel_name,\r\n    function_name,\r\n    contact_name,\r\n    contact_record_id,\r\n    company_record_id,\r\n    team_record_id,\r\n    channel_record_id,\r\n    function_record_id,\r\n    coupon_record_id,\r\n    coupon_status,\r\n    REPLACE(\r\n        REPLACE(\r\n            REPLACE(UPPER(cpx.order_status), 'COMPLETED', 'COMPLETE'), \r\n            'outfordelivery', 'Out For Delivery'\r\n        ), \r\n        'returned_to_shipper', 'Returned To Shipper'\r\n    ) AS order_status,\r\n    CURRENT_TIMESTAMP AS update_timestamp\r\nFROM \r\n    raw.cpx_raw AS cpx\r\nWHERE \r\n    cpx.team_name = 'SSC';",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"preCopyScript": "truncate table curated.cpx",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false,
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "AzureSql",
+								"type": "DatasetReference",
+								"parameters": {
+									"schema": "raw",
+									"table": "cpx_raw"
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "AzureSql",
+								"type": "DatasetReference",
+								"parameters": {
+									"schema": "curated",
+									"table": "cpx"
+								}
+							}
+						]
+					},
+					{
+						"name": "Copy Araby to Curated",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Update ArabyAds Raw",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": "SELECT\r\n    campaign_name,\r\n    campaign_id,\r\n    automation,\r\n    last_updated_at,\r\n    campaign_start_year,\r\n    code,\r\n    date,\r\n    original_currency,\r\n    REPLACE(\r\n        REPLACE(\r\n            REPLACE(ara.country, 'KSA', 'SAU'),\r\n            'UAE', 'ARE'\r\n        ),\r\n        'INT', ''\r\n    ) AS country,\r\n    CASE \r\n        WHEN ara.customer_type = 'new' THEN 'New'\r\n        ELSE 'Returning' \r\n    END AS customer_type,\r\n    ad_set,\r\n    month,\r\n    month_number,\r\n    order_id,\r\n    CASE\r\n        -- Specific replacements first\r\n        WHEN ara.brand LIKE '%Beluar Bukhoor%' THEN 'Beluar'\r\n        WHEN ara.brand LIKE '%Foot locker%' THEN 'Footlocker'\r\n        WHEN ara.brand LIKE '%Levelshoes%' THEN 'Level Shoes'\r\n        WHEN ara.brand LIKE '%Mr. Mandoob%' THEN 'Mrmandoob'\r\n        WHEN ara.brand LIKE '%Sun & Sand%' THEN 'Sun & Sands Sports'\r\n        WHEN ara.brand LIKE '%HOMEBOX%' THEN 'Home Box'\r\n        WHEN ara.brand = '6thstreet' THEN '6th Street'\r\n        WHEN ara.brand = 'Bath & body works' THEN 'Bath and body works'\r\n        WHEN ara.brand LIKE '%Airalo%' THEN 'Airalo'\r\n        WHEN ara.brand = 'Toysrus' THEN 'Toys r us'\r\n        WHEN ara.brand = 'First cry' THEN 'Firstcry'\r\n        WHEN ara.brand = 'Foot locker' THEN 'Footlocker'\r\n        WHEN ara.brand = 'Go sport' THEN 'Go sports'\r\n        WHEN ara.brand = 'Izil' THEN 'Izil Beauty'\r\n        WHEN ara.brand LIKE '%Munch%' THEN 'Munch bakery'\r\n        WHEN ara.brand LIKE '%Basharacare%' THEN 'Bashara Care'\r\n        WHEN ara.brand LIKE '%Dropkicks%' THEN 'Dropkick'\r\n        WHEN ara.brand LIKE '%Temu%' THEN 'Temu'\r\n\r\n        -- Handle common patterns\r\n        WHEN ara.brand LIKE '% CPS - Influencers%' THEN REPLACE(ara.brand, ' CPS - Influencers', '')\r\n        WHEN ara.brand LIKE '% _Coupons%' THEN REPLACE(ara.brand, ' _Coupons', '')\r\n        WHEN ara.brand LIKE '% CPS-KSA, UAE and KWT%' THEN REPLACE(ara.brand, ' CPS-KSA, UAE and KWT', '')\r\n        WHEN ara.brand LIKE '% CPS \\KSA Coupon%' THEN REPLACE(ara.brand, ' CPS \\KSA Coupon ', '')\r\n        WHEN ara.brand LIKE '% CPS - Coupons UAE & KSA%' THEN REPLACE(ara.brand, ' CPS - Coupons UAE & KSA', '')\r\n        WHEN ara.brand LIKE '% CPS - Coupons UAE and KSA%' THEN REPLACE(ara.brand, ' CPS - Coupons UAE and KSA', '')\r\n        WHEN ara.brand LIKE '% KSA & UAE%' THEN REPLACE(ara.brand, ' KSA & UAE', '')\r\n        WHEN ara.brand LIKE '%CPS GCC-Coupons%' THEN REPLACE(ara.brand, 'CPS GCC-Coupons', '')\r\n        WHEN ara.brand LIKE '%- CPS Coupons GCC%' THEN REPLACE(ara.brand, '- CPS Coupons GCC', '')\r\n        WHEN ara.brand LIKE '%- CPS Links%' THEN REPLACE(ara.brand, '- CPS Links', '')\r\n        WHEN ara.brand LIKE '%-CPS%' THEN REPLACE(ara.brand, '-CPS', '')\r\n        WHEN ara.brand LIKE '%KSA- CPS%' THEN REPLACE(ara.brand, 'KSA- CPS', '')\r\n        WHEN ara.brand LIKE '%- CPS%' THEN REPLACE(ara.brand, '- CPS', '')\r\n        WHEN ara.brand LIKE '%CPS%' THEN REPLACE(ara.brand, 'CPS', '')\r\n        WHEN ara.brand LIKE '%Coupons%' THEN REPLACE(ara.brand, 'Coupons', '')\r\n        WHEN ara.brand LIKE '%_CPS' THEN REPLACE(ara.brand, '_CPS', '')\r\n        WHEN ara.brand LIKE '%_CPO' THEN REPLACE(ara.brand, '_CPO', '')\r\n        WHEN ara.brand LIKE '%_web' THEN REPLACE(ara.brand, '_web', '')\r\n        WHEN ara.brand LIKE '%_ksa' THEN REPLACE(ara.brand, '_ksa', '')\r\n        WHEN ara.brand LIKE '% - plt%' THEN REPLACE(ara.brand, ' - plt', '')\r\n        WHEN ara.brand LIKE '% - maf%' THEN REPLACE(ara.brand, ' - maf', '')\r\n        WHEN ara.brand LIKE '% - rakuten%' THEN REPLACE(ara.brand, ' - rakuten', '')\r\n        WHEN ara.brand LIKE '% (tbs)' THEN REPLACE(ara.brand, ' (tbs)', '')\r\n        WHEN ara.brand LIKE '% (durrapro)' THEN REPLACE(ara.brand, ' (durrapro)', '')\r\n\r\n        -- General replacements\r\n        WHEN ara.brand LIKE '%_%' THEN REPLACE(ara.brand, '_', ' ')\r\n\r\n        ELSE ara.brand\r\n    END AS brand,\r\n    customer_returning_days,\r\n    legal_entity_name,\r\n    aov,\r\n    action_type_label,\r\n    business_category_label,\r\n    orders,\r\n    revenue,\r\n    input_file_name,\r\n    CURRENT_TIMESTAMP AS update_timestamp\r\nFROM \r\n    raw.arabyads_raw AS ara",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"preCopyScript": "truncate table curated.arabyads",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false,
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "AzureSql",
+								"type": "DatasetReference",
+								"parameters": {
+									"schema": "raw",
+									"table": "arabyads_raw"
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "AzureSql",
+								"type": "DatasetReference",
+								"parameters": {
+									"schema": "curated",
+									"table": "arabyads"
+								}
+							}
+						]
+					},
+					{
+						"name": "Copy Noon to Curated",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Update Noon Raw",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": "select\r\n[ORDER DATE],\r\nADVERTISER,\r\nPLATFORM,\r\nCOUNTRY,\r\n[COUPON CODE],\r\nTIER,\r\n[TOTAL ORDERS],\r\n[NON-PAYABLE ORDERS],\r\n[TOTAL VALUE],\r\n[FTU ORDERS],\r\n[FTU ORDER VALUE],\r\n[RTU ORDERS]\r\ninput_file_name,\r\nCURRENT_TIMESTAMP as update_timestamp\r\nfrom raw.noon_raw",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"preCopyScript": "truncate table curated.noon",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false,
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "AzureSql",
+								"type": "DatasetReference",
+								"parameters": {
+									"schema": "raw",
+									"table": "noon_raw"
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "AzureSql",
+								"type": "DatasetReference",
+								"parameters": {
+									"schema": "curated",
+									"table": "noon"
+								}
+							}
+						]
+					},
+					{
+						"name": "Copy Digizag to Curated",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Update Digizag Raw",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": "SELECT\r\n    CASE\r\n        -- Specific replacements first\r\n        WHEN dig.[Offer.name] LIKE '%Beluar Bukhoor%' THEN 'Beluar'\r\n        WHEN dig.[Offer.name] LIKE '%Foot locker%' THEN 'Footlocker'\r\n        WHEN dig.[Offer.name] LIKE '%Levelshoes%' THEN 'Level Shoes'\r\n        WHEN dig.[Offer.name] LIKE '%Mr. Mandoob%' THEN 'Mrmandoob'\r\n        WHEN dig.[Offer.name] LIKE '%Sun & Sand%' THEN 'Sun & Sands Sports'\r\n        WHEN dig.[Offer.name] LIKE '%HOMEBOX%' THEN 'Home Box'\r\n        WHEN dig.[Offer.name] = '6thstreet' THEN '6th Street'\r\n        WHEN dig.[Offer.name] = 'Bath & body works' THEN 'Bath and body works'\r\n        WHEN dig.[Offer.name] LIKE '%Airalo%' THEN 'Airalo'\r\n        WHEN dig.[Offer.name] = 'Toysrus' THEN 'Toys r us'\r\n        WHEN dig.[Offer.name] = 'First cry' THEN 'Firstcry'\r\n        WHEN dig.[Offer.name] = 'Foot locker' THEN 'Footlocker'\r\n        WHEN dig.[Offer.name] = 'Go sport' THEN 'Go sports'\r\n        WHEN dig.[Offer.name] = 'Izil' THEN 'Izil Beauty'\r\n        WHEN dig.[Offer.name] LIKE '%Munch%' THEN 'Munch bakery'\r\n        WHEN dig.[Offer.name] LIKE '%Basharacare%' THEN 'Bashara Care'\r\n        WHEN dig.[Offer.name] LIKE '%Dropkicks%' THEN 'Dropkick'\r\n        WHEN dig.[Offer.name] LIKE '%Temu%' THEN 'Temu'\r\n\r\n        -- Handle common patterns\r\n        WHEN dig.[Offer.name] LIKE '% CPS - Influencers%' THEN REPLACE(dig.[Offer.name], ' CPS - Influencers', '')\r\n        WHEN dig.[Offer.name] LIKE '% _Coupons%' THEN REPLACE(dig.[Offer.name], ' _Coupons', '')\r\n        WHEN dig.[Offer.name] LIKE '% CPS-KSA, UAE and KWT%' THEN REPLACE(dig.[Offer.name], ' CPS-KSA, UAE and KWT', '')\r\n        WHEN dig.[Offer.name] LIKE '% CPS \\KSA Coupon%' THEN REPLACE(dig.[Offer.name], ' CPS \\KSA Coupon ', '')\r\n        WHEN dig.[Offer.name] LIKE '% CPS - Coupons UAE & KSA%' THEN REPLACE(dig.[Offer.name], ' CPS - Coupons UAE & KSA', '')\r\n        WHEN dig.[Offer.name] LIKE '% CPS - Coupons UAE and KSA%' THEN REPLACE(dig.[Offer.name], ' CPS - Coupons UAE and KSA', '')\r\n        WHEN dig.[Offer.name] LIKE '% KSA & UAE%' THEN REPLACE(dig.[Offer.name], ' KSA & UAE', '')\r\n        WHEN dig.[Offer.name] LIKE '%CPS GCC-Coupons%' THEN REPLACE(dig.[Offer.name], 'CPS GCC-Coupons', '')\r\n        WHEN dig.[Offer.name] LIKE '%- CPS Coupons GCC%' THEN REPLACE(dig.[Offer.name], '- CPS Coupons GCC', '')\r\n        WHEN dig.[Offer.name] LIKE '%- CPS Links%' THEN REPLACE(dig.[Offer.name], '- CPS Links', '')\r\n        WHEN dig.[Offer.name] LIKE '%-CPS%' THEN REPLACE(dig.[Offer.name], '-CPS', '')\r\n        WHEN dig.[Offer.name] LIKE '%KSA- CPS%' THEN REPLACE(dig.[Offer.name], 'KSA- CPS', '')\r\n        WHEN dig.[Offer.name] LIKE '%- CPS%' THEN REPLACE(dig.[Offer.name], '- CPS', '')\r\n        WHEN dig.[Offer.name] LIKE '%CPS%' THEN REPLACE(dig.[Offer.name], 'CPS', '')\r\n        WHEN dig.[Offer.name] LIKE '%Coupons%' THEN REPLACE(dig.[Offer.name], 'Coupons', '')\r\n        WHEN dig.[Offer.name] LIKE '%_CPS' THEN REPLACE(dig.[Offer.name], '_CPS', '')\r\n        WHEN dig.[Offer.name] LIKE '%_CPO' THEN REPLACE(dig.[Offer.name], '_CPO', '')\r\n        WHEN dig.[Offer.name] LIKE '%_web' THEN REPLACE(dig.[Offer.name], '_web', '')\r\n        WHEN dig.[Offer.name] LIKE '%_ksa' THEN REPLACE(dig.[Offer.name], '_ksa', '')\r\n        WHEN dig.[Offer.name] LIKE '% - plt%' THEN REPLACE(dig.[Offer.name], ' - plt', '')\r\n        WHEN dig.[Offer.name] LIKE '% - maf%' THEN REPLACE(dig.[Offer.name], ' - maf', '')\r\n        WHEN dig.[Offer.name] LIKE '% - rakuten%' THEN REPLACE(dig.[Offer.name], ' - rakuten', '')\r\n        WHEN dig.[Offer.name] LIKE '% (tbs)' THEN REPLACE(dig.[Offer.name], ' (tbs)', '')\r\n        WHEN dig.[Offer.name] LIKE '% (durrapro)' THEN REPLACE(dig.[Offer.name], ' (durrapro)', '')\r\n\r\n        -- General replacements\r\n        WHEN dig.[Offer.name] LIKE '%_%' THEN REPLACE(dig.[Offer.name], '_', ' ')\r\n\r\n        ELSE dig.[Offer.name]\r\n    END AS Brand,\r\n    [Offer.name],\r\n    [Goal.name],\r\n    [Stat.promo_code],\r\n    [Country.name],\r\n    [Stat.affiliate_info1],\r\n    [Stat.impressions],\r\n    [Stat.conversions],\r\n    [Stat.clicks],\r\n    [Stat.payout],\r\n    [Stat.currency],\r\n    [Stat.payout_type],\r\n    [Stat.date],\r\n    [Stat.sale_amount],\r\n    [Stat.ctr],\r\n    [Stat.ltr],\r\n    [Stat.offer_id],\r\n    [Offer.id],\r\n    [Goal.id],\r\n    [Country.code],\r\n    currency_payout,\r\n    sale_amount,\r\n    input_file_name,\r\n    CURRENT_TIMESTAMP AS update_timestamp\r\nFROM \r\n    raw.digizag_raw dig\r\nWHERE \r\n    dig.[Stat.payout] != '649249.585900'",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"preCopyScript": "truncate table curated.digizag",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false,
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "AzureSql",
+								"type": "DatasetReference",
+								"parameters": {
+									"schema": "raw",
+									"table": "digizag_raw"
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "AzureSql",
+								"type": "DatasetReference",
+								"parameters": {
+									"schema": "curated",
+									"table": "digizag"
+								}
+							}
+						]
+					},
+					{
+						"name": "Copy AdmitAds to Curated",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Update AdmitAds Raw",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": "SELECT\r\n    Website,\r\n    CASE\r\n        -- Specific replacements first\r\n        WHEN LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1) LIKE '%Beluar Bukhoor%' THEN 'Beluar'\r\n        WHEN LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1) LIKE '%Foot locker%' THEN 'Footlocker'\r\n        WHEN LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1) LIKE '%Levelshoes%' THEN 'Level Shoes'\r\n        WHEN LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1) LIKE '%Mr. Mandoob%' THEN 'Mrmandoob'\r\n        WHEN LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1) LIKE '%Sun & Sand%' THEN 'Sun & Sands Sports'\r\n        WHEN LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1) LIKE '%HOMEBOX%' THEN 'Home Box'\r\n        WHEN LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1) = '6thstreet' THEN '6th Street'\r\n        WHEN LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1) = 'Bath & body works' THEN 'Bath and body works'\r\n        WHEN LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1) LIKE '%Airalo%' THEN 'Airalo'\r\n        WHEN LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1) = 'Toysrus' THEN 'Toys r us'\r\n        WHEN LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1) = 'First cry' THEN 'Firstcry'\r\n        WHEN LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1) = 'Foot locker' THEN 'Footlocker'\r\n        WHEN LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1) = 'Go sport' THEN 'Go sports'\r\n        WHEN LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1) = 'Izil' THEN 'Izil Beauty'\r\n        WHEN LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1) LIKE '%Munch%' THEN 'Munch bakery'\r\n        WHEN LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1) LIKE '%Basharacare%' THEN 'Bashara Care'\r\n        WHEN LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1) LIKE '%Dropkicks%' THEN 'Dropkick'\r\n        WHEN LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1) LIKE '%Temu%' THEN 'Temu'\r\n\r\n        -- Handle common patterns\r\n        WHEN LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1) LIKE '% CPS - Influencers%' THEN REPLACE(LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1), ' CPS - Influencers', '')\r\n        WHEN LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1) LIKE '% _Coupons%' THEN REPLACE(LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1), ' _Coupons', '')\r\n        WHEN LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1) LIKE '% CPS-KSA, UAE and KWT%' THEN REPLACE(LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1), ' CPS-KSA, UAE and KWT', '')\r\n        WHEN LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1) LIKE '% CPS \\KSA Coupon%' THEN REPLACE(LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1), ' CPS \\KSA Coupon ', '')\r\n        WHEN LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1) LIKE '% CPS - Coupons UAE & KSA%' THEN REPLACE(LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1), ' CPS - Coupons UAE & KSA', '')\r\n        WHEN LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1) LIKE '% CPS - Coupons UAE and KSA%' THEN REPLACE(LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1), ' CPS - Coupons UAE and KSA', '')\r\n        WHEN LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1) LIKE '% KSA & UAE%' THEN REPLACE(LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1), ' KSA & UAE', '')\r\n        WHEN LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1) LIKE '%CPS GCC-Coupons%' THEN REPLACE(LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1), 'CPS GCC-Coupons', '')\r\n        WHEN LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1) LIKE '%- CPS Coupons GCC%' THEN REPLACE(LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1), '- CPS Coupons GCC', '')\r\n        WHEN LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1) LIKE '%- CPS Links%' THEN REPLACE(LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1), '- CPS Links', '')\r\n        WHEN LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1) LIKE '%-CPS%' THEN REPLACE(LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1), '-CPS', '')\r\n        WHEN LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1) LIKE '%KSA- CPS%' THEN REPLACE(LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1), 'KSA- CPS', '')\r\n        WHEN LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1) LIKE '%- CPS%' THEN REPLACE(LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1), '- CPS', '')\r\n        WHEN LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1) LIKE '%CPS%' THEN REPLACE(LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1), 'CPS', '')\r\n        WHEN LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1) LIKE '%Coupons%' THEN REPLACE(LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1), 'Coupons', '')\r\n        WHEN LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1) LIKE '%_CPS' THEN REPLACE(LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1), '_CPS', '')\r\n        WHEN LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1) LIKE '%_CPO' THEN REPLACE(LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1), '_CPO', '')\r\n        WHEN LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1) LIKE '%_web' THEN REPLACE(LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1), '_web', '')\r\n        WHEN LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1) LIKE '%_ksa' THEN REPLACE(LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1), '_ksa', '')\r\n        WHEN LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1) LIKE '% - plt%' THEN REPLACE(LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1), ' - plt', '')\r\n        WHEN LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1) LIKE '% - maf%' THEN REPLACE(LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1), ' - maf', '')\r\n        WHEN LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1) LIKE '% - rakuten%' THEN REPLACE(LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1), ' - rakuten', '')\r\n        WHEN LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1) LIKE '% (tbs)' THEN REPLACE(LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1), ' (tbs)', '')\r\n        WHEN LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1) LIKE '% (durrapro)' THEN REPLACE(LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1), ' (durrapro)', '')\r\n\r\n        -- General replacements\r\n        WHEN LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1) LIKE '%_%' THEN REPLACE(LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1), '_', ' ')\r\n\r\n        ELSE LEFT([Adv. Campaign], CHARINDEX(' ', [Adv. Campaign] + ' ') - 1)\r\n    END AS [Adv. Campaign],\r\n    [Click Time],\r\n    [Action Time],\r\n    [Conversion Time],\r\n    [Action ID],\r\n    [Action name],\r\n    [Order Sum],\r\n    Status,\r\n    [Date of processing],\r\n    Payment,\r\n    [Order ID],\r\n    Promocode,\r\n    SubID,\r\n    SubID1,\r\n    SubID2,\r\n    SubID3,\r\n    SubID4,\r\n    Keyword,\r\n    Comment,\r\n    ID,\r\n    [Product Name],\r\n    [Product Image],\r\n    [Product Url],\r\n    [Product Country Code],\r\n    [Product Category ID],\r\n    [Product category name],\r\n    input_file_name,\r\n    CURRENT_TIMESTAMP AS update_timestamp\r\nFROM \r\n    raw.admitads_raw adm\r\nWHERE \r\n    Website = 'sahseh'",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"preCopyScript": "truncate table curated.admitads",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false,
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "AzureSql",
+								"type": "DatasetReference",
+								"parameters": {
+									"schema": "raw",
+									"table": "admitads_raw"
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "AzureSql",
+								"type": "DatasetReference",
+								"parameters": {
+									"schema": "curated",
+									"table": "admitads"
+								}
+							}
+						]
+					},
+					{
+						"name": "Copy 6th Street to Curated",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Update 6th Street Raw",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": "select\r\nOrder_Date,\r\nDiscount_Code,\r\nUser_Type,\r\nOrders,\r\nSales,\r\ninput_file_name,\r\ncurrent_timestamp as update_timestamp\r\nfrom raw.[6thstreet_raw]",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"preCopyScript": "truncate table curated.[6thstreet]",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false,
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "AzureSql",
+								"type": "DatasetReference",
+								"parameters": {
+									"schema": "raw",
+									"table": "[[6thstreet_raw]"
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "AzureSql",
+								"type": "DatasetReference",
+								"parameters": {
+									"schema": "curated",
+									"table": "6thstreet"
+								}
+							}
+						]
+					},
+					{
+						"name": "Copy Plaformance to Curated",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Update Platformance Raw",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": "SELECT\r\n    REPLACE(CASE\r\n        -- Specific replacements first\r\n        WHEN plt.Campaign LIKE '%Beluar Bukhoor%' THEN 'Beluar'\r\n        WHEN plt.Campaign LIKE '%Foot locker%' THEN 'Footlocker'\r\n        WHEN plt.Campaign LIKE '%Levelshoes%' THEN 'Level Shoes'\r\n        WHEN plt.Campaign LIKE '%Mr. Mandoob%' THEN 'Mrmandoob'\r\n        WHEN plt.Campaign LIKE '%Sun & Sand%' THEN 'Sun & Sands Sports'\r\n        WHEN plt.Campaign LIKE '%HOMEBOX%' THEN 'Home Box'\r\n        WHEN plt.Campaign = '6thstreet' THEN '6th Street'\r\n        WHEN plt.Campaign = 'Bath & body works' THEN 'Bath and body works'\r\n        WHEN plt.Campaign LIKE '%Airalo%' THEN 'Airalo'\r\n        WHEN plt.Campaign = 'Toysrus' THEN 'Toys r us'\r\n        WHEN plt.Campaign = 'First cry' THEN 'Firstcry'\r\n        WHEN plt.Campaign = 'Foot locker' THEN 'Footlocker'\r\n        WHEN plt.Campaign = 'Go sport' THEN 'Go sports'\r\n        WHEN plt.Campaign = 'Izil' THEN 'Izil Beauty'\r\n        WHEN plt.Campaign LIKE '%Munch%' THEN 'Munch bakery'\r\n        WHEN plt.Campaign LIKE '%Basharacare%' THEN 'Bashara Care'\r\n        WHEN plt.Campaign LIKE '%Dropkicks%' THEN 'Dropkick'\r\n        WHEN plt.Campaign LIKE '%Temu%' THEN 'Temu'\r\n\r\n        -- Handle common patterns\r\n        WHEN plt.Campaign LIKE '% CPS - Influencers%' THEN REPLACE(plt.Campaign, ' CPS - Influencers', '')\r\n        WHEN plt.Campaign LIKE '% _Coupons%' THEN REPLACE(plt.Campaign, ' _Coupons', '')\r\n        WHEN plt.Campaign LIKE '% CPS-KSA, UAE and KWT%' THEN REPLACE(plt.Campaign, ' CPS-KSA, UAE and KWT', '')\r\n        WHEN plt.Campaign LIKE '% CPS \\KSA Coupon%' THEN REPLACE(plt.Campaign, ' CPS \\KSA Coupon', '')\r\n        WHEN plt.Campaign LIKE '% CPS - Coupons UAE & KSA%' THEN REPLACE(plt.Campaign, ' CPS - Coupons UAE & KSA', '')\r\n        WHEN plt.Campaign LIKE '% CPS - Coupons UAE and KSA%' THEN REPLACE(plt.Campaign, ' CPS - Coupons UAE and KSA', '')\r\n        WHEN plt.Campaign LIKE '% KSA & UAE%' THEN REPLACE(plt.Campaign, ' KSA & UAE', '')\r\n        WHEN plt.Campaign LIKE '%CPS GCC-Coupons%' THEN REPLACE(plt.Campaign, 'CPS GCC-Coupons', '')\r\n        WHEN plt.Campaign LIKE '%- CPS Coupons GCC%' THEN REPLACE(plt.Campaign, '- CPS Coupons GCC', '')\r\n        WHEN plt.Campaign LIKE '%- CPS Links%' THEN REPLACE(plt.Campaign, '- CPS Links', '')\r\n        WHEN plt.Campaign LIKE '%-CPS%' THEN REPLACE(plt.Campaign, '-CPS', '')\r\n        WHEN plt.Campaign LIKE '%KSA- CPS%' THEN REPLACE(plt.Campaign, 'KSA- CPS', '')\r\n        WHEN plt.Campaign LIKE '%- CPS%' THEN REPLACE(plt.Campaign, '- CPS', '')\r\n        WHEN plt.Campaign LIKE '%CPS%' THEN REPLACE(plt.Campaign, 'CPS', '')\r\n        WHEN plt.Campaign LIKE '%Coupons%' THEN REPLACE(plt.Campaign, 'Coupons', '')\r\n        WHEN plt.Campaign LIKE '%_CPS' THEN REPLACE(plt.Campaign, '_CPS', '')\r\n        WHEN plt.Campaign LIKE '%_CPO' THEN REPLACE(plt.Campaign, '_CPO', '')\r\n        WHEN plt.Campaign LIKE '%_web' THEN REPLACE(plt.Campaign, '_web', '')\r\n        WHEN plt.Campaign LIKE '%_ksa' THEN REPLACE(plt.Campaign, '_ksa', '')\r\n        WHEN plt.Campaign LIKE '% - plt%' THEN REPLACE(plt.Campaign, ' - plt', '')\r\n        WHEN plt.Campaign LIKE '% - maf%' THEN REPLACE(plt.Campaign, ' - maf', '')\r\n        WHEN plt.Campaign LIKE '% - rakuten%' THEN REPLACE(plt.Campaign, ' - rakuten', '')\r\n        WHEN plt.Campaign LIKE '% (tbs)' THEN REPLACE(plt.Campaign, ' (tbs)', '')\r\n        WHEN plt.Campaign LIKE '% (durrapro)' THEN REPLACE(plt.Campaign, ' (durrapro)', '')\r\n\r\n        -- General replacements\r\n        WHEN plt.Campaign LIKE '%_%' THEN REPLACE(plt.Campaign, '_', ' ')\r\n\r\n        ELSE plt.Campaign\r\n    END, '_', ' ') AS Campaign, -- Apply final replacement of underscores\r\n\r\n    [Goal Name],\r\n    [Coupon Code],\r\n    [Country (GEO)],\r\n    Date,\r\n    Payout,\r\n    [payout in USD],\r\n    Conversions,\r\n    [Sale Amount],\r\n    [saleAmount in USD],\r\n    [Pending Sale Amount],\r\n    [pendingSaleAmount in USD],\r\n    [Pending Conversions],\r\n    [Pending Payout],\r\n    [pendingPayout in USD],\r\n    input_file_name,\r\n    CURRENT_TIMESTAMP AS update_timestamp\r\nFROM \r\n    raw.platformance_raw plt\r\nWHERE \r\n    CAST(date AS DATE) >= '2024-01-01';\r\n",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"preCopyScript": "truncate table curated.platformance",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false,
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "AzureSql",
+								"type": "DatasetReference",
+								"parameters": {
+									"schema": "raw",
+									"table": "platformance_raw"
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "AzureSql",
+								"type": "DatasetReference",
+								"parameters": {
+									"schema": "curated",
+									"table": "platformance"
+								}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"variables": {
+					"Today_Date": {
+						"type": "String"
+					},
+					"Dubai_Time": {
+						"type": "Integer"
+					},
+					"Folder_Name": {
+						"type": "String",
+						"defaultValue": "7AM"
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/DelimitedText')]",
+				"[concat(variables('factoryId'), '/datasets/AzureSql')]",
+				"[concat(variables('factoryId'), '/datasets/Excel')]",
+				"[concat(variables('factoryId'), '/datasets/AzureSqlTableDados')]",
+				"[concat(variables('factoryId'), '/linkedServices/AzureSqlDatabase')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Incremental Load')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Execute Raw and Curated Refresh",
+						"type": "ExecutePipeline",
+						"dependsOn": [],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "Update raw and curated layer",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "Execute Dim and Fact Refresh",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "Execute Raw and Curated Refresh",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "Update dim and fact tables",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/Update raw and curated layer')]",
+				"[concat(variables('factoryId'), '/pipelines/Update dim and fact tables')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/trigger_07_13_15_00')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "Incremental Load",
+							"type": "PipelineReference"
+						},
+						"parameters": {}
+					}
+				],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Day",
+						"interval": 1,
+						"startTime": "2025-01-30T10:06:00",
+						"timeZone": "Arabian Standard Time",
+						"schedule": {
+							"minutes": [
+								0
+							],
+							"hours": [
+								7,
+								13,
+								15
+							]
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/Incremental Load')]"
 			]
 		}
 	]
