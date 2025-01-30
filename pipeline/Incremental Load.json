@@ -1,0 +1,47 @@
+{
+	"name": "Incremental Load",
+	"properties": {
+		"activities": [
+			{
+				"name": "Execute Raw and Curated Refresh",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Update raw and curated layer",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Execute Dim and Fact Refresh",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute Raw and Curated Refresh",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Update dim and fact tables",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"annotations": []
+	}
+}
