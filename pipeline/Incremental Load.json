@@ -25,7 +25,7 @@
 					{
 						"activity": "Execute Raw and Curated Refresh",
 						"dependencyConditions": [
-							"Succeeded"
+							"Completed"
 						]
 					}
 				],
