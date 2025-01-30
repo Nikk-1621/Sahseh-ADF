@@ -337,7 +337,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"source": {
-						"type": "DelimitedTextSource",
+						"type": "ExcelSource",
 						"additionalColumns": [
 							{
 								"name": "input_file_name",
@@ -357,9 +357,6 @@
 							},
 							"wildcardFileName": "*",
 							"enablePartitionDiscovery": false
-						},
-						"formatSettings": {
-							"type": "DelimitedTextReadSettings"
 						}
 					},
 					"sink": {
@@ -382,8 +379,11 @@
 				},
 				"inputs": [
 					{
-						"referenceName": "DelimitedText",
-						"type": "DatasetReference"
+						"referenceName": "Excel",
+						"type": "DatasetReference",
+						"parameters": {
+							"Sheet_name": "Statistics"
+						}
 					}
 				],
 				"outputs": [
