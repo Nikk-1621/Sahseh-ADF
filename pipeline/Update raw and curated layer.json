@@ -62,7 +62,7 @@
 				"typeProperties": {
 					"variableName": "Folder_Name",
 					"value": {
-						"value": "@if(less(variables('Dubai_Time'), 14), '7AM', \nif(less(variables('Dubai_Time'), 15), '1PM', '3PM'))",
+						"value": "@if(less(variables('Dubai_Time'), 13), '7AM', \nif(less(variables('Dubai_Time'), 15), '1PM', '3PM'))",
 						"type": "Expression"
 					}
 				}
