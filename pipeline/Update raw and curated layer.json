@@ -1374,7 +1374,7 @@
 					},
 					"sink": {
 						"type": "AzureSqlSink",
-						"preCopyScript": "truncate table if exists curated.styli",
+						"preCopyScript": "truncate table curated.styli",
 						"writeBehavior": "insert",
 						"sqlWriterUseTableLock": false,
 						"disableMetricsCollection": false
