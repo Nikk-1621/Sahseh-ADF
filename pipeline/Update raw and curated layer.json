@@ -70,8 +70,6 @@
 			{
 				"name": "Copy Noon Data",
 				"type": "Copy",
-				"state": "Inactive",
-				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "Set Today Date",
@@ -156,8 +154,6 @@
 			{
 				"name": "Copy Platformance Data",
 				"type": "Copy",
-				"state": "Inactive",
-				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "Set Today Date",
@@ -488,8 +484,6 @@
 			{
 				"name": "Copy 6th Street Data",
 				"type": "Copy",
-				"state": "Inactive",
-				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "Set Today Date",
@@ -571,8 +565,6 @@
 			{
 				"name": "Copy CPX CPBI",
 				"type": "Copy",
-				"state": "Inactive",
-				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "Set Today Date",
@@ -1246,8 +1238,6 @@
 			{
 				"name": "Copy Styli Data",
 				"type": "Copy",
-				"state": "Inactive",
-				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "Set Today Date",
@@ -1423,8 +1413,6 @@
 			{
 				"name": "Copy App Sheet to Curated",
 				"type": "Copy",
-				"state": "Inactive",
-				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "Set Today Date",
